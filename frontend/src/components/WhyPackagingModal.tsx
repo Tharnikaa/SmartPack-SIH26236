@@ -1,35 +1,67 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Recommendation } from '../types';
 import { OriginBadge } from './OriginBadge';
 import { CoverageBadge } from './CoverageBadge';
 import { 
   X, CheckCircle, AlertTriangle, Info, BookOpen, 
-  BarChart2, ShieldAlert, FileText 
+  BarChart2, ShieldAlert, Sparkles, RefreshCw 
 } from 'lucide-react';
 
 interface Props {
   recommendation: Recommendation | null;
+  userInput?: any;
+  requirements?: any;
   onClose: () => void;
 }
 
-export const WhyPackagingModal: React.FC<Props> = ({ recommendation, onClose }) => {
+export const WhyPackagingModal: React.FC<Props> = ({ recommendation, userInput, requirements, onClose }) => {
+  const [aiNarrative, setAiNarrative] = useState<string | null>(null);
+  const [aiStatus, setAiStatus] = useState<string | null>(null);
+  const [loadingAi, setLoadingAi] = useState(false);
+
   if (!recommendation) return null;
 
   const {
     rank,
-    rank_title,
     material,
     packaging_type,
     suitability_score,
     ml_prediction,
     evidence_points,
     contributing_factors,
-    warnings,
     source_citation,
     scientific_limitations,
     technical_data_coverage,
     technical_coverage_pct
   } = recommendation;
+
+  const fetchGeminiExplanation = async () => {
+    setLoadingAi(true);
+    try {
+      const res = await fetch('http://localhost:8000/api/explain/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recommendation,
+          user_input: userInput || {},
+          requirements: requirements || {}
+        })
+      });
+      const data = await res.json();
+      if (data.status === 'SUCCESS') {
+        setAiNarrative(data.narrative);
+        setAiStatus('SUCCESS');
+      } else {
+        setAiStatus(data.status || 'UNCONFIGURED');
+        setAiNarrative(data.message || 'Gemini API key is not configured.');
+      }
+    } catch (err: any) {
+      setAiStatus('ERROR');
+      setAiNarrative('Failed to contact explanation service.');
+    } finally {
+      setLoadingAi(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
@@ -79,6 +111,41 @@ export const WhyPackagingModal: React.FC<Props> = ({ recommendation, onClose }) 
                 <OriginBadge origin="ML PREDICTION" size="xs" />
               </div>
             </div>
+          </div>
+
+          {/* Optional Gemini AI Scientific Narrative */}
+          <div className="p-4 rounded-xl bg-gradient-to-br from-brand-50/70 to-purple-50/50 border border-brand-200">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-brand-600" />
+                <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
+                  AI Scientific Justification (Google Gemini)
+                </h3>
+              </div>
+              <button
+                onClick={fetchGeminiExplanation}
+                disabled={loadingAi}
+                className="px-2.5 py-1 rounded-lg bg-white border border-brand-200 hover:bg-brand-50 text-[11px] font-semibold text-brand-700 flex items-center gap-1.5 transition-colors shadow-2xs"
+              >
+                <RefreshCw className={`w-3 h-3 ${loadingAi ? 'animate-spin' : ''}`} />
+                <span>{loadingAi ? 'Synthesizing...' : (aiNarrative ? 'Regenerate Narrative' : 'Generate Gemini Narrative')}</span>
+              </button>
+            </div>
+
+            {aiNarrative ? (
+              <div className="mt-2 text-xs text-slate-800 leading-relaxed font-normal bg-white/80 p-3 rounded-lg border border-brand-100 whitespace-pre-line">
+                {aiNarrative}
+                <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
+                  <span>Synthesized by Gemini 1.5 Flash grounded in FSSAI Schedule IV & BIS limits</span>
+                  <OriginBadge origin="AI EXPLANATION" size="xs" />
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-slate-600 leading-relaxed">
+                Click <strong>"Generate Gemini Narrative"</strong> to synthesize a fluent, authoritative scientific explanation.
+                Configure your key in <code className="bg-white px-1.5 py-0.5 rounded border border-slate-200 font-mono text-[10px]">.env</code>: <code className="text-brand-700 font-semibold font-mono text-[10px]">GEMINI_API_KEY=...</code>
+              </p>
+            )}
           </div>
 
           {/* Section 1: Positive Evidence Checklist */}

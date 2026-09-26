@@ -11,8 +11,16 @@ from app.logic.scoring_engine import scoring_engine
 from app.logic.explanation_engine import explanation_engine
 from app.ml.train import model_trainer
 from app.ml.model_loader import model_loader
+from app.services.llm_service import llm_service
 
 router = APIRouter(prefix="/api")
+
+@router.post("/explain/gemini")
+def explain_with_gemini(payload: Dict[str, Any]):
+    recommendation = payload.get("recommendation", {})
+    user_input = payload.get("user_input", {})
+    requirements = payload.get("requirements", {})
+    return llm_service.generate_ai_explanation(recommendation, user_input, requirements)
 
 @router.get("/health")
 def get_health():
