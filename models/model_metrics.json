@@ -1,0 +1,51 @@
+{
+  "model_type": "RandomForestRegressor & Classifier",
+  "model_status": "TRAINED",
+  "dataset_rows": 7200,
+  "train_rows": 5400,
+  "test_rows": 1800,
+  "target_notice": "Prototype target generated from rule-based domain scoring; not an experimentally measured ground-truth label.",
+  "metrics": {
+    "regression": {
+      "mae": 0.0348,
+      "rmse": 0.0448,
+      "r2": 0.9187
+    },
+    "classification": {
+      "accuracy": 0.9183,
+      "precision": 0.8586,
+      "recall": 0.8466,
+      "f1": 0.8526,
+      "confusion_matrix": [
+        [
+          1228,
+          70
+        ],
+        [
+          77,
+          425
+        ]
+      ]
+    }
+  },
+  "feature_importance": {
+    "food_moisture": 0.0073,
+    "food_fat_sensitivity": 0.0001,
+    "food_ph": 0.0,
+    "shelf_life_days": 0.7282,
+    "storage_temp": 0.002,
+    "storage_rh": 0.0,
+    "req_oxygen_score": 0.0001,
+    "req_moisture_score": 0.0001,
+    "req_mechanical_score": 0.0001,
+    "req_seal_score": 0.0001,
+    "is_rigid": 0.0041,
+    "is_laminate": 0.1388,
+    "is_paper": 0.0044,
+    "is_glass_metal": 0.0989,
+    "has_measured_wvtr": 0.0,
+    "has_measured_otr": 0.0,
+    "is_recyclable": 0.016,
+    "is_biodegradable": 0.0
+  }
+}
