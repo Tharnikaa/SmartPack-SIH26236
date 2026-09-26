@@ -17,6 +17,7 @@ interface Props {
 export const WhyPackagingModal: React.FC<Props> = ({ recommendation, userInput, requirements, onClose }) => {
   const [aiNarrative, setAiNarrative] = useState<string | null>(null);
   const [aiStatus, setAiStatus] = useState<string | null>(null);
+  const [aiModel, setAiModel] = useState<string | null>(null);
   const [loadingAi, setLoadingAi] = useState(false);
 
   if (!recommendation) return null;
@@ -50,6 +51,7 @@ export const WhyPackagingModal: React.FC<Props> = ({ recommendation, userInput, 
       const data = await res.json();
       if (data.status === 'SUCCESS') {
         setAiNarrative(data.narrative);
+        setAiModel(data.model || 'Gemini 2.5 Flash');
         setAiStatus('SUCCESS');
       } else {
         setAiStatus(data.status || 'UNCONFIGURED');
@@ -136,7 +138,7 @@ export const WhyPackagingModal: React.FC<Props> = ({ recommendation, userInput, 
               <div className="mt-2 text-xs text-slate-800 leading-relaxed font-normal bg-white/80 p-3 rounded-lg border border-brand-100 whitespace-pre-line">
                 {aiNarrative}
                 <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-[10px] text-slate-400">
-                  <span>Synthesized by Gemini 1.5 Flash grounded in FSSAI Schedule IV & BIS limits</span>
+                  <span>Synthesized by {aiModel || 'Gemini 2.5 Flash'} grounded in FSSAI Schedule IV & BIS limits</span>
                   <OriginBadge origin="AI EXPLANATION" size="xs" />
                 </div>
               </div>

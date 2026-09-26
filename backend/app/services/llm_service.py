@@ -69,53 +69,44 @@ RULES:
 4. Keep the tone professional, scientific, and concise (under 160 words).
 """
 
-        endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={self.api_key}"
-        
-        try:
-            payload = {
-                "contents": [
-                    {
-                        "parts": [{"text": prompt}]
-                    }
-                ],
-                "generationConfig": {
-                    "temperature": 0.2,
-                    "maxOutputTokens": 400
+        model_candidates = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.5-flash-lite", "gemini-1.5-flash"]
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": prompt}]
                 }
+            ],
+            "generationConfig": {
+                "temperature": 0.2,
+                "maxOutputTokens": 450
             }
+        }
 
-            with httpx.Client(timeout=15.0) as client:
-                resp = client.post(endpoint, json=payload)
-                if resp.status_code == 200:
-                    data = resp.json()
-                    candidates = data.get("candidates", [])
-                    if candidates:
-                        text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
-                        return {
-                            "status": "SUCCESS",
-                            "narrative": text.strip(),
-                            "model": "gemini-1.5-flash",
-                            "label": "AI EXPLANATION (Ground-Truth Evidence Synthesis)"
-                        }
-                else:
-                    logger.error(f"Gemini API returned error: {resp.status_code} - {resp.text}")
-                    return {
-                        "status": "API_ERROR",
-                        "narrative": None,
-                        "message": f"Gemini API request failed ({resp.status_code})"
-                    }
-        except Exception as e:
-            logger.error(f"Failed to generate Gemini narrative: {e}")
-            return {
-                "status": "NETWORK_ERROR",
-                "narrative": None,
-                "message": str(e)
-            }
+        with httpx.Client(timeout=20.0) as client:
+            for model_name in model_candidates:
+                endpoint = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={self.api_key}"
+                try:
+                    resp = client.post(endpoint, json=payload)
+                    if resp.status_code == 200:
+                        data = resp.json()
+                        candidates = data.get("candidates", [])
+                        if candidates:
+                            text = candidates[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                            return {
+                                "status": "SUCCESS",
+                                "narrative": text.strip(),
+                                "model": model_name,
+                                "label": "AI EXPLANATION (Ground-Truth Evidence Synthesis)"
+                            }
+                    elif resp.status_code != 404:
+                        logger.warning(f"Gemini API returned {resp.status_code} for {model_name}: {resp.text[:200]}")
+                except Exception as e:
+                    logger.warning(f"Error calling {model_name}: {e}")
 
         return {
-            "status": "UNAVAILABLE",
+            "status": "API_ERROR",
             "narrative": None,
-            "message": "Could not synthesize AI narrative."
+            "message": "Gemini API request failed. Please verify your API key permissions."
         }
 
 llm_service = LLMService()
