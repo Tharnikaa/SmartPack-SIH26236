@@ -188,8 +188,8 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
           onClick={() => onOpenExplain(recommendation)}
           className={`w-full py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
             isFirst
-              ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-sm'
-              : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-200'
+              ? 'bg-violet-600 hover:bg-violet-700 text-white shadow-sm cursor-pointer'
+              : 'bg-white hover:bg-slate-100 text-slate-800 border border-slate-200 cursor-pointer'
           }`}
         >
           <span>Why this packaging? View Analysis</span>

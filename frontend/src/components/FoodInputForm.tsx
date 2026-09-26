@@ -489,7 +489,7 @@ export const FoodInputForm: React.FC<Props> = ({ formData, setFormData, onAnalyz
           <button
             type="submit"
             disabled={loading}
-            className="w-full sm:w-auto px-6 py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2"
+            className="w-full sm:w-auto px-8 py-3.5 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white font-bold text-sm rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
           >
             {loading ? (
               <>
@@ -499,7 +499,7 @@ export const FoodInputForm: React.FC<Props> = ({ formData, setFormData, onAnalyz
             ) : (
               <>
                 <span>Analyze & Recommend Packaging</span>
-                <Sliders className="w-4 h-4" />
+                <Sliders className="w-4 h-4 ml-1" />
               </>
             )}
           </button>
