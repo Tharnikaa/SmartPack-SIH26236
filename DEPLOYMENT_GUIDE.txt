@@ -1,0 +1,143 @@
+================================================================================
+SMARTPACK (SIH 26236) - COMPLETE DEPLOYMENT GUIDE
+================================================================================
+
+This document describes step-by-step how to deploy SmartPack online to the public.
+You can choose between:
+- METHOD 1 (RECOMMENDED): Deploy Backend on Render (Free) + Frontend on Vercel (Free)
+- METHOD 2: Deploy everything in a single service using Docker or Render
+- METHOD 3: Self-hosted VPS (Ubuntu / AWS EC2 / DigitalOcean)
+
+--------------------------------------------------------------------------------
+PREREQUISITES
+--------------------------------------------------------------------------------
+1. Your project is already pushed to GitHub:
+   https://github.com/Tharnikaa/SmartPack-SIH26236.git
+2. A free account on:
+   - Render (https://render.com) for Python Backend
+   - Vercel (https://vercel.com) for React Frontend
+3. Your Google Gemini API Key (from https://aistudio.google.com/app/apikey)
+
+================================================================================
+METHOD 1 (RECOMMENDED): RENDER (BACKEND) + VERCEL (FRONTEND)
+================================================================================
+
+--------------------------------------------------------------------------------
+PART A: DEPLOY THE PYTHON BACKEND ON RENDER (FREE)
+--------------------------------------------------------------------------------
+1. Go to https://dashboard.render.com and log in with your GitHub account.
+2. Click "New +" and select "Web Service".
+3. Under "Connect a repository", select:
+   Tharnikaa/SmartPack-SIH26236
+4. Fill in the following deployment settings:
+   - Name: smartpack-api (or any name you prefer)
+   - Region: Singapore (or Frankfurt / Oregon)
+   - Branch: main
+   - Root Directory: (LEAVE BLANK or enter .)
+   - Runtime: Python 3
+   - Build Command:
+       pip install -r requirements.txt
+   - Start Command:
+       uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+
+5. Select the "Free" plan instance ($0/month).
+6. Click "Advanced" -> "Add Environment Variable":
+   - Key: GEMINI_API_KEY
+   - Value: <paste your actual Gemini API key here>
+   - Key: PYTHON_VERSION
+   - Value: 3.12.0
+7. Click "Create Web Service".
+8. Wait 2-3 minutes for the build to finish.
+9. Render will give you a public URL (e.g., https://smartpack-api.onrender.com).
+   Test it in your browser:
+   https://smartpack-api.onrender.com/api/health
+   If it returns {"status":"healthy", ...}, your backend is live!
+
+--------------------------------------------------------------------------------
+PART B: DEPLOY THE REACT FRONTEND ON VERCEL (FREE)
+--------------------------------------------------------------------------------
+1. Go to https://vercel.com and log in with GitHub.
+2. Click "Add New..." -> "Project".
+3. Select your repository: Tharnikaa/SmartPack-SIH26236.
+4. In the configuration window:
+   - Project Name: smartpack
+   - Framework Preset: Vite
+   - Root Directory: Click "Edit" and choose:
+       frontend
+   - Build Command: npm run build (default)
+   - Output Directory: dist (default)
+   - Install Command: npm install (default)
+
+5. Under "Environment Variables", add:
+   - Name: VITE_API_BASE_URL
+   - Value: https://smartpack-api.onrender.com/api
+     (Replace with your actual Render backend URL from Part A)
+
+6. Click "Deploy".
+7. Wait 1 minute. Vercel will give you a public URL:
+   e.g., https://smartpack-sih26236.vercel.app
+
+8. Done! Your website is live worldwide with SSL (HTTPS) automatically enabled.
+
+================================================================================
+METHOD 2: DEPLOY ON RAILWAY (ALTERNATIVE 1-CLICK HOSTING)
+================================================================================
+1. Go to https://railway.app and log in with GitHub.
+2. Click "New Project" -> "Deploy from GitHub repo".
+3. Select Tharnikaa/SmartPack-SIH26236.
+4. Add Service -> Backend:
+   - Root Directory: /
+   - Build Command: pip install -r requirements.txt
+   - Start Command: uvicorn app.main:app --app-dir backend --host 0.0.0.0 --port $PORT
+   - Environment Variables: GEMINI_API_KEY=<your_key>
+5. Add Service -> Frontend:
+   - Root Directory: frontend
+   - Build Command: npm run build
+   - Start Command: npx serve dist
+6. Generate public domains for both services in the Railway settings tab.
+
+================================================================================
+METHOD 3: DOCKER DEPLOYMENT (CONTAINER / VPS / AWS EC2)
+================================================================================
+If you prefer running a single self-contained Docker container:
+
+1. Create a file named "Dockerfile" at project root:
+----------------------------------------------------------------------
+FROM node:20-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+RUN npm run build
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+COPY . .
+COPY --from=frontend-builder /app/frontend/dist /app/frontend/dist
+
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--app-dir", "backend", "--host", "0.0.0.0", "--port", "8000"]
+----------------------------------------------------------------------
+
+2. Build and run locally with Docker:
+   docker build -t smartpack:latest .
+   docker run -d -p 8000:8000 -e GEMINI_API_KEY="your_key" smartpack:latest
+
+3. Deploy this container to AWS App Runner, Google Cloud Run, or DigitalOcean Droplet.
+
+================================================================================
+IMPORTANT PRODUCTION CHECKLIST
+================================================================================
+[ ] Ensure GEMINI_API_KEY is added to the hosting platform's Environment Variables.
+    Never commit real API keys into git files.
+[ ] In Render free tier, web services sleep after 15 minutes of inactivity and
+    take ~30-50 seconds to wake up on the first request. This is normal.
+[ ] In Vercel, make sure the Root Directory is set to "frontend", not the repository root.
+[ ] Verify that your backend allows CORS from your frontend's Vercel domain
+    (SmartPack's backend has CORS enabled with allow_origins=["*"] by default).
+
+================================================================================
+END OF GUIDE
+================================================================================
