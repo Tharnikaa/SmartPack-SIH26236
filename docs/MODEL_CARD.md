@@ -1,21 +1,17 @@
-# MODEL CARD: SmartPack Food-Packaging Suitability Model
+# MODEL CARD: SmartPack Decision & Scoring System
 
-## 1. Model Details
-- **Model Name:** SmartPack Hybrid Packaging Suitability Predictor
-- **Model Version:** 1.0.0-prototype
-- **Architecture:** Random Forest Regressor (`n_estimators=100`, `max_depth=8`) & Random Forest Classifier (`n_estimators=100`, `max_depth=8`)
-- **Library:** `scikit-learn 1.9.1`, `joblib 1.6.0`
-- **Output:**
-  - Continuous Suitability Score (0.0 to 1.0 / 0 to 100)
-  - Discrete Recommendation Decision (Class 0: Not Recommended / Class 1: Recommended)
-  - Model Feature Importances
+## 1. System Details
+- **Architecture:** Transparent Multi-Criteria Engineering Engine (Stage 1 FSSAI Schedule IV Retrieval $\rightarrow$ Stage 2 Fick's-Law Barrier & Thickness Engine $\rightarrow$ Stage 3 Hard Regulatory Constraint Interlock $\rightarrow$ Stage 4 Deterministic Multi-Criteria Scoring $\rightarrow$ Stage 5 Provenance & Evidence Engine)
+- **Status:** **ML Suitability Scoring Removed Pending Real Labeled Outcome Data**
+- **Legacy Prototype Code:** Retained in `app/ml/` (`train.py`, `predict.py`, `model_loader.py`) for reference and future model development when sufficient real experimental data is available.
 
 ---
 
 ## 2. Intended Use & Scope
 ### Intended Use:
 - Decision support for food product developers, packaging engineers, and small-scale food enterprises to identify candidate packaging materials conforming to FSSAI (Packaging) Regulations 2018.
-- Ranking compatible packaging materials based on product preservation requirements, barrier attributes, and transport constraints.
+- Ranking compatible packaging materials based on product preservation requirements, barrier attributes (Fick's-law thickness solver), and transport constraints.
+- Displaying transparent data provenance badges (`DATABASE VALUE`, `REFERENCE VALUE (published literature)`, `CALCULATED REQUIREMENT`, `DERIVED SCORE`).
 
 ### Non-Intended Use / Out-of-Scope:
 - **NOT** a laboratory certification tool or legal regulatory waiver.
@@ -24,80 +20,45 @@
 
 ---
 
-## 3. Training Data & Section 12 Transparency Disclosure
+## 3. Scientific Integrity & Data Limitation Disclosure
 
-> [!WARNING]
-> ### CRITICAL ML DATA LIMITATION (Prompt Section 12)
-> The raw datasets supplied in the project do not contain thousands of experimentally measured shelf-life combinations or ground-truth suitability labels.
-> Therefore, this model trains on a **transparent prototype target (`suitability_label`)** derived from scientific requirement satisfaction rules, FSSAI Schedule IV regulatory recommendations, and BIS standards.
-> 
-> **It is NOT an experimentally measured laboratory ground-truth label.**
-
-- **Feature Vectors:** Generated across combinations of real ICMR IFCT 2017 nutritional records (496 foods), FSSAI Schedule IV packaging mappings (102 rows), and BIS technical property specifications.
-- **Train/Test Separation:** 75% Training Split / 25% Held-Out Testing Split (`random_state=42`).
+> [!IMPORTANT]
+> ### NOTICE: REMOVAL OF SYNTHETIC ML SUITABILITY MODEL
+> An engineering audit revealed that the prototype ML training pipeline (`generate_prototype_training_data()` in `backend/app/ml/train.py`) synthesized 7,200 rows using hardcoded rule-based scoring with artificial Gaussian noise, and reported high regression/classification metrics ($R^2 = 0.9187$, Accuracy = $91.83\%$).
+>
+> Because these targets were circularly generated from rules rather than experimentally measured laboratory outcomes, reporting high machine-learning performance metrics was scientifically misleading.
+>
+> **ML suitability scoring has been completely removed from the active scoring pipeline.**
+> Scoring is now deterministically computed across five scientific and regulatory criteria based on verified database records (Datasets 01–14) and cited packaging science literature values (`16_material_barrier_mechanical_reference.csv`).
 
 ---
 
-## 4. Input Features (18 Tabular Features)
+## 4. Multi-Criteria Scoring Architecture (Sum = 1.00)
 
-| Feature Name | Category | Description | Source |
+The legacy 0.30 weight allocated to the synthetic ML model was redistributed proportionally across the remaining five criteria (new weight = old weight / 0.70):
+
+| Scoring Criterion | Weight | Data Provenance & Methodology | Source |
 |---|---|---|---|
-| `food_moisture` | Food | Moisture content in % | ICMR IFCT 2017 (`01_food_dataset.csv`) |
-| `food_fat_sensitivity` | Food | Lipid oxidation sensitivity index (0.1 to 1.0) | User Input / Nutritional Fat % |
-| `food_ph` | Food | Product pH | User Input |
-| `shelf_life_days` | Storage | Target preservation horizon in days | User Input |
-| `storage_temp` | Storage | Ambient / chilled storage temperature in °C | User Input |
-| `storage_rh` | Storage | Storage relative humidity % | User Input |
-| `req_oxygen_score` | Requirement | Calculated oxygen barrier requirement index | Requirement Engine |
-| `req_moisture_score` | Requirement | Calculated moisture barrier requirement index | Requirement Engine |
-| `req_mechanical_score` | Requirement | Calculated mechanical protection requirement index | Requirement Engine |
-| `req_seal_score` | Requirement | Calculated hermetic sealability requirement index | Requirement Engine |
-| `is_rigid` | Packaging | Binary flag: rigid container/box vs flexible pouch | Packaging Catalog / BIS Specs |
-| `is_laminate` | Packaging | Binary flag: multilayer / composite structure | Packaging Catalog |
-| `is_paper` | Packaging | Binary flag: cellulose paper / fibreboard | Packaging Catalog |
-| `is_glass_metal` | Packaging | Binary flag: impermeable glass / metal container | Packaging Catalog |
-| `has_measured_wvtr` | Data Quality | 1 if measured WVTR exists in database, 0 if null | Dataset Inspection |
-| `has_measured_otr` | Data Quality | 1 if measured OTR exists in database, 0 if null | Dataset Inspection |
-| `is_recyclable` | Sustainability | 1 if recyclable per CPCB EPR guidelines, else 0 | CPCB / MoEFCC (`11_sustainability_dataset.csv`) |
-| `is_biodegradable` | Sustainability | 1 if compostable/biodegradable, else 0 | Sustainability Dataset |
+| **Barrier Fit** | **28.57%** | Compares candidate OTR and WVTR against product preservation targets derived via Fick's first law of diffusion. Rigid impermeable containers (glass, tinplate) score 0.98. | Dataset 08 (IS 5012) & Dataset 16 literature references (Robertson / Selke) |
+| **Compatibility & Safety** | **21.43%** | Evaluates chemical compatibility, non-reactivity, and adherence to FSSAI (Packaging) Regulations 2018 Schedule IV. | Datasets 09, 13, 14 |
+| **Shelf-Life Protection** | **21.43%** | Compares benchmark database shelf life against requested user horizon. | Datasets 05, 10 |
+| **Mechanical Protection** | **14.29%** | Evaluates tensile strength (MPa), burst index, reference gauge, and structural rigidity against transport rigor. | Dataset 07 (BIS specs) & Dataset 16 (typical ranges) |
+| **Sustainability & Circularity** | **14.28%** | Scored via CPCB Extended Producer Responsibility (EPR) categorisation and biodegradability/compostability status. | Datasets 11, 12 |
 
 ---
 
-## 5. Evaluation Methodology & Metrics
-
-Evaluation was conducted on a held-out test split of 25% of synthesized combinations:
-
-### Continuous Regression Performance:
-- **Mean Absolute Error (MAE):** 0.0348 (approx 3.5 points on a 100-point scale)
-- **Root Mean Squared Error (RMSE):** 0.0448
-- **R² Score:** 0.9187
-
-### Classification Performance (Suitable vs. Unsuitable):
-- **Accuracy:** 96.8%
-- **Precision:** 0.954
-- **Recall:** 0.978
-- **F1 Score:** 0.966
+## 5. Fick's-Law Packaging Thickness Solver
+To close the physical property gap without fabricating false data, the system implements a deterministic thickness solver (`backend/app/logic/thickness_engine.py`):
+$$\text{Permeability } (P) = \text{TR}_{\text{reference}} \times \text{Thickness}_{\text{reference}}$$
+$$\text{Required Thickness} = \frac{P}{\text{Target TR}}$$
+- Solved for both OTR and WVTR; the larger thickness governs.
+- Rounded up to standard commercial film gauges: **25, 37, 50, 75, 100 $\mu$m**.
+- Rigid impermeable materials (glass bottles, tinplate cans) are flagged as **`N/A — rigid, impermeable`**.
+- Multilayer/metalized composites are clearly labeled **`estimated (multilayer)`**.
 
 ---
 
-## 6. Model Feature Importance (Audit Ranking)
-
-1. `shelf_life_days` (Preservation horizon)
-2. `req_oxygen_score` (Calculated oxygen barrier need)
-3. `is_laminate` (Multilayer barrier capacity)
-4. `food_fat_sensitivity` (Lipid rancidity risk)
-5. `is_glass_metal` (Hermetic gas/moisture impermeability)
-6. `req_moisture_score` (Moisture migration barrier need)
-7. `food_moisture` (Product water percentage)
-8. `is_rigid` (Structural crush protection)
-9. `is_recyclable` (EPR circularity alignment)
-
-> [!NOTE]
-> Feature importance is presented for model explainability and algorithmic audit. It does **not** constitute causal laboratory biological evidence.
-
----
-
-## 7. Safety Interlock: Hard Constraints Priority
-In accordance with **Master Rule Section 9**, the ML model **never** unilaterally selects the #1 recommendation:
-1. Incompatible or prohibited materials (e.g. recycled plastics in direct food contact per IS 14534, non-compliant paper for confectionery per IS 2991) are **purged by the Hard Constraint Filter prior to ML scoring**.
-2. The final suitability score is a **Hybrid Multi-Factor Score** combining ML prediction (30%), Barrier satisfaction (20%), Compatibility (15%), Shelf life (15%), Mechanical robustness (10%), and Sustainability (10%).
+## 6. Safety Interlock: Hard Constraints Priority
+In accordance with mandatory safety guidelines, candidate scoring is strictly subordinate to hard regulatory constraints:
+1. Incompatible or prohibited materials (e.g. recycled plastics in direct food contact per IS 14534, non-compliant paper for confectionery per IS 2991) are **purged by the Hard Constraint Filter prior to scoring**.
+2. If all candidates are eliminated, the system displays prominent safety warnings with closest non-compliant alternatives and explicitly cites the violated BIS/FSSAI clause.

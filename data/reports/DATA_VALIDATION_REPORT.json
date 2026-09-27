@@ -1,12 +1,12 @@
 {
   "status": "VALIDATED",
-  "total_datasets": 11,
+  "total_datasets": 12,
   "datasets": {
     "01_food_dataset.csv": {
       "rows": 496,
-      "cols": 28,
+      "cols": 29,
       "duplicates": 0,
-      "missing_cells_pct": 54.08,
+      "missing_cells_pct": 55.66,
       "usable": true,
       "columns": [
         "food_id",
@@ -36,14 +36,15 @@
         "source",
         "source_document",
         "page_number",
-        "notes"
+        "notes",
+        "source_url"
       ]
     },
     "06_packaging_material_dataset.csv": {
       "rows": 26,
-      "cols": 21,
+      "cols": 22,
       "duplicates": 0,
-      "missing_cells_pct": 35.35,
+      "missing_cells_pct": 33.74,
       "usable": true,
       "columns": [
         "packaging_id",
@@ -66,14 +67,15 @@
         "source",
         "source_document",
         "page_number",
-        "notes"
+        "notes",
+        "source_url"
       ]
     },
-    "07_packaging_properties_dataset_Claude.csv": {
+    "07_packaging_properties_dataset.csv": {
       "rows": 85,
-      "cols": 12,
+      "cols": 13,
       "duplicates": 0,
-      "missing_cells_pct": 32.65,
+      "missing_cells_pct": 30.14,
       "usable": true,
       "columns": [
         "material_name",
@@ -87,14 +89,15 @@
         "source",
         "source_document",
         "page_number",
-        "notes"
+        "notes",
+        "source_url"
       ]
     },
     "08_barrier_properties_dataset.csv": {
       "rows": 2,
-      "cols": 21,
+      "cols": 22,
       "duplicates": 0,
-      "missing_cells_pct": 50.0,
+      "missing_cells_pct": 47.73,
       "usable": true,
       "columns": [
         "material_name",
@@ -117,14 +120,15 @@
         "source",
         "source_document",
         "page_number",
-        "notes"
+        "notes",
+        "source_url"
       ]
     },
     "09_food_packaging_compatibility_MERGED.csv": {
       "rows": 50,
-      "cols": 18,
+      "cols": 19,
       "duplicates": 0,
-      "missing_cells_pct": 45.0,
+      "missing_cells_pct": 42.63,
       "usable": true,
       "columns": [
         "food_name",
@@ -144,14 +148,15 @@
         "not_recommended",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "10_packaging_shelf_life_dataset.csv": {
       "rows": 17,
-      "cols": 19,
+      "cols": 20,
       "duplicates": 0,
-      "missing_cells_pct": 15.17,
+      "missing_cells_pct": 14.41,
       "usable": true,
       "columns": [
         "record_id",
@@ -172,14 +177,15 @@
         "shelf_life_extension",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "11_sustainability_dataset.csv": {
       "rows": 11,
-      "cols": 16,
+      "cols": 17,
       "duplicates": 0,
-      "missing_cells_pct": 0.57,
+      "missing_cells_pct": 0.53,
       "usable": true,
       "columns": [
         "material_name",
@@ -197,12 +203,13 @@
         "environmental_concerns",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "12_recyclability_dataset.csv": {
       "rows": 6,
-      "cols": 13,
+      "cols": 14,
       "duplicates": 0,
       "missing_cells_pct": 0.0,
       "usable": true,
@@ -219,14 +226,15 @@
         "end_of_life",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "13_regulatory_rules.csv": {
       "rows": 20,
-      "cols": 16,
+      "cols": 17,
       "duplicates": 0,
-      "missing_cells_pct": 24.38,
+      "missing_cells_pct": 22.94,
       "usable": true,
       "columns": [
         "rule_id",
@@ -244,14 +252,15 @@
         "regulation_name",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "14_recommended_packaging.csv": {
       "rows": 102,
-      "cols": 13,
+      "cols": 14,
       "duplicates": 0,
-      "missing_cells_pct": 42.08,
+      "missing_cells_pct": 39.08,
       "usable": true,
       "columns": [
         "food_name",
@@ -266,14 +275,15 @@
         "recyclability_information",
         "source",
         "source_document",
-        "page_number"
+        "page_number",
+        "source_url"
       ]
     },
     "15_MASTER_ML_DATASET.csv": {
       "rows": 17,
-      "cols": 34,
+      "cols": 30,
       "duplicates": 0,
-      "missing_cells_pct": 70.42,
+      "missing_cells_pct": 65.69,
       "usable": true,
       "columns": [
         "food_name",
@@ -294,22 +304,50 @@
         "packaging_material",
         "packaging_type",
         "thickness",
-        "OTR",
-        "WVTR",
-        "moisture_barrier",
-        "oxygen_barrier",
-        "light_barrier",
-        "strength",
-        "heat_sealability",
-        "food_packaging_compatibility",
         "shelf_life",
         "shelf_life_unit",
-        "recyclable",
-        "reusable",
-        "compostable",
-        "biodegradable",
+        "initial_food_condition",
+        "quality_change",
+        "shelf_life_extension",
+        "source",
+        "source_document",
+        "page_number",
+        "source_url",
+        "food_packaging_compatibility",
         "recommended",
-        "source"
+        "not_recommended"
+      ]
+    },
+    "16_material_barrier_mechanical_reference.csv": {
+      "rows": 20,
+      "cols": 23,
+      "duplicates": 0,
+      "missing_cells_pct": 1.74,
+      "usable": true,
+      "columns": [
+        "material_id",
+        "material_name",
+        "material_family",
+        "typical_application",
+        "reference_thickness_micron",
+        "otr_low",
+        "otr_high",
+        "otr_unit",
+        "otr_test_condition",
+        "wvtr_low",
+        "wvtr_high",
+        "wvtr_unit",
+        "wvtr_test_condition",
+        "co2tr_note",
+        "tensile_strength_low_MPa",
+        "tensile_strength_high_MPa",
+        "mechanical_note",
+        "heat_seal_temp_C",
+        "sealability_rating",
+        "recyclability_note",
+        "key_limitation",
+        "data_origin",
+        "source_citation"
       ]
     }
   }

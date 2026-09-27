@@ -1,6 +1,7 @@
 import json
 import os
 from typing import Dict, Any, Optional
+from app.services.data_service import data_service
 
 class RequirementEngine:
     def __init__(self, thresholds_path: str = "config/requirement_thresholds.json"):
@@ -25,17 +26,26 @@ class RequirementEngine:
         Calculates scientific requirement estimates based on food properties and storage requirements.
         Adheres to transparency guidelines: all outputs are labelled 'Calculated requirement'.
         """
+        food_name_raw = str(user_input.get("food_name", "")).strip()
+        food_name = food_name_raw.lower()
+        food_category = str(user_input.get("food_category", "")).lower()
+        
+        # Look up commodity-specific respiration profile from reference CSV
+        resp_ref = data_service.lookup_respiration(food_name_raw, food_category)
+        if resp_ref:
+            respiration = resp_ref["respiration_class"].lower()
+        else:
+            respiration = str(user_input.get("respiration_activity", "Low")).lower()
+
         moisture = float(user_input.get("moisture_level", 15.0) or 15.0)
         fat_sensitivity = str(user_input.get("fat_oil_sensitivity", "Medium")).lower()
         ph = float(user_input.get("ph", 6.0) or 6.0)
-        respiration = str(user_input.get("respiration_activity", "Low")).lower()
         shelf_life_days = int(user_input.get("desired_shelf_life_days", 90) or 90)
         storage_temp = float(user_input.get("storage_temperature_c", 25.0) or 25.0)
         relative_humidity = float(user_input.get("relative_humidity_pct", 65.0) or 65.0)
         transport_cond = str(user_input.get("transport_condition", "Ambient")).lower()
         map_required = str(user_input.get("map_required", "No")).lower()
         sustainability_priority = str(user_input.get("sustainability_priority", "Standard")).lower()
-        food_category = str(user_input.get("food_category", "")).lower()
 
         # 1. Oxygen Barrier Requirement
         # Driven by fat oxidation sensitivity, requested shelf life, and ambient/warm storage
@@ -129,16 +139,23 @@ class RequirementEngine:
 
         # 5. MAP / Gas Exchange Requirement
         if "yes" in map_required:
-            map_req = "Mandatory Gas Barrier"
-            map_desc = "Must maintain modified atmosphere (CO2/N2) without premature gas escape."
+            if "high" in respiration:
+                map_req = "Equilibrium MAP / Perforated Barrier"
+                map_desc = "High-respiration produce under MAP requires micro-perforations or selective permeability to prevent anaerobic fermentation."
+            else:
+                map_req = "Mandatory Gas Barrier"
+                map_desc = "Must maintain modified atmosphere (CO2/N2) without premature gas escape."
         elif "high" in respiration:
             map_req = "Permeable / Breathable"
-            map_desc = "Active produce respiration requires controlled gas permeability or micro-perforations to prevent anaerobic spoilage."
+            map_desc = "Active produce respiration requires controlled gas permeability, ventilation, or macro-perforations to prevent anaerobic spoilage."
+        elif "medium" in respiration:
+            map_req = "Semi-permeable / Breathable"
+            map_desc = "Moderate produce respiration requires balanced gas exchange or ventilated containment to avoid condensation and senescence."
         elif "optional" in map_required:
             map_req = "Recommended"
-            map_desc = "MAP beneficial for shelf-life extension but standard hermetic barrier acceptable."
+            map_desc = "MAP beneficial for shelf-life extension but standard containment acceptable."
         else:
-            map_req = "Not Required"
+            map_req = "Standard Gas Barrier" if shelf_life_days > 90 else "Not Required"
             map_desc = "Standard ambient atmosphere packaging suitable."
 
         # 6. Shelf-life Protection Requirement
@@ -169,8 +186,22 @@ class RequirementEngine:
             sust_req = "Standard EPR Compliance"
             sust_desc = "Compliance with Plastic Waste Management Rules 2016 and CPCB EPR guidelines."
 
+        # 9. Light Sensitivity / Darkness Requirement
+        # Tubers (potatoes) synthesize chlorophyll and toxic glycoalkaloids (solanine) upon light exposure.
+        # Edible oils undergo photo-oxidation.
+        if any(k in food_name for k in ["potato", "tuber", "onion"]) or any(k in food_category for k in ["root", "tuber"]):
+            light_req = "Mandatory Opaque / Light Barrier"
+            light_desc = "Tuber requires dark storage to prevent light-induced chlorophyll formation and toxic solanine accumulation."
+        elif "high" in fat_sensitivity or "oil" in food_category:
+            light_req = "Light-Protective Barrier"
+            light_desc = "Fat/oil content sensitive to photo-oxidation; opaque, amber, or metallized barrier recommended."
+        else:
+            light_req = "Standard (Light protection not critical)"
+            light_desc = "Transparent or translucent packaging acceptable."
+
         return {
             "disclaimer": "Calculated requirement estimate based on product inputs; not a laboratory measurement.",
+            "respiration_profile": resp_ref,
             "oxygen_requirement": {
                 "level": oxygen_req,
                 "score": round(o2_score, 2),
@@ -213,6 +244,11 @@ class RequirementEngine:
             "sustainability_requirement": {
                 "level": sust_req,
                 "description": sust_desc,
+                "label": "CALCULATED REQUIREMENT"
+            },
+            "light_requirement": {
+                "level": light_req,
+                "description": light_desc,
                 "label": "CALCULATED REQUIREMENT"
             }
         }

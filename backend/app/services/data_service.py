@@ -32,6 +32,7 @@ class DataService:
         self.regulatory_df: pd.DataFrame = pd.DataFrame()
         self.recommended_df: pd.DataFrame = pd.DataFrame()
         self.master_ml_df: pd.DataFrame = pd.DataFrame()
+        self.material_reference_df: pd.DataFrame = pd.DataFrame()
         
         self.validation_report: Dict[str, Any] = {}
         self.load_all_datasets()
@@ -59,7 +60,10 @@ class DataService:
         logger.info("Loading all source datasets into memory...")
         self.foods_df = self._read_csv_safe("01_food_dataset.csv")
         self.packaging_mat_df = self._read_csv_safe("06_packaging_material_dataset.csv")
-        self.packaging_props_df = self._read_csv_safe("07_packaging_properties_dataset_Claude.csv")
+        props_df = self._read_csv_safe("07_packaging_properties_dataset.csv")
+        if props_df.empty:
+            props_df = self._read_csv_safe("07_packaging_properties_dataset_Claude.csv")
+        self.packaging_props_df = props_df
         self.barrier_props_df = self._read_csv_safe("08_barrier_properties_dataset.csv")
         self.compatibility_df = self._read_csv_safe("09_food_packaging_compatibility_MERGED.csv")
         self.shelf_life_df = self._read_csv_safe("10_packaging_shelf_life_dataset.csv")
@@ -68,15 +72,69 @@ class DataService:
         self.regulatory_df = self._read_csv_safe("13_regulatory_rules.csv")
         self.recommended_df = self._read_csv_safe("14_recommended_packaging.csv")
         self.master_ml_df = self._read_csv_safe("15_MASTER_ML_DATASET.csv")
+        self.material_reference_df = self._read_csv_safe("16_material_barrier_mechanical_reference.csv")
+        self.respiration_df = self._read_csv_safe("respiration_reference_completed.csv")
 
         self.generate_validation_report()
-        logger.info(f"Loaded {len(self.foods_df)} foods, {len(self.recommended_df)} recommended mappings, {len(self.packaging_mat_df)} packaging materials.")
+        logger.info(f"Loaded {len(self.foods_df)} foods, {len(self.recommended_df)} recommended mappings, {len(self.packaging_mat_df)} packaging materials, {len(self.material_reference_df)} literature reference materials, {len(self.respiration_df)} respiration records.")
+
+    def lookup_respiration(self, food_name: str, food_category: str = "") -> Optional[Dict[str, Any]]:
+        """
+        Looks up commodity-specific respiration rate and class from respiration_reference_completed.csv.
+        Returns normalized respiration level ('Low', 'Medium', 'High') and reference metadata.
+        Does not invent values if commodity is not present.
+        """
+        if self.respiration_df.empty or not food_name:
+            return None
+
+        q = food_name.strip().lower()
+        df = self.respiration_df
+
+        # 1. Exact match on canonical_commodity
+        match = df[df["canonical_commodity"].astype(str).str.strip().str.lower() == q]
+        
+        # 2. Substring match on canonical_commodity or original_food_name
+        if match.empty:
+            match = df[df["canonical_commodity"].astype(str).str.lower().apply(lambda x: x in q or q in x)]
+        if match.empty:
+            match = df[df["original_food_name"].astype(str).str.lower().apply(lambda x: any(term in x for term in q.split() if len(term) > 3))]
+
+        if match.empty:
+            return None
+
+        row = match.iloc[0]
+        raw_class = str(row.get("respiration_class", "")).strip()
+        if not raw_class or raw_class.lower() == "nan":
+            return None
+
+        # Normalize into Low / Medium / High
+        rc_lower = raw_class.lower()
+        if any(k in rc_lower for k in ["very low", "low"]):
+            normalized = "Low"
+        elif any(k in rc_lower for k in ["moderate", "medium"]):
+            normalized = "Medium"
+        elif any(k in rc_lower for k in ["high", "extremely high"]):
+            normalized = "High"
+        else:
+            normalized = "Medium"
+
+        return {
+            "canonical_commodity": str(row.get("canonical_commodity", food_name)),
+            "respiration_class": normalized,
+            "raw_class": raw_class,
+            "rate_min": None if pd.isna(row.get("respiration_rate_min")) else float(row.get("respiration_rate_min")),
+            "rate_max": None if pd.isna(row.get("respiration_rate_max")) else float(row.get("respiration_rate_max")),
+            "rate_unit": str(row.get("respiration_rate_unit", "mg CO2/kg/hr")),
+            "temperature_c": str(row.get("temperature_C", "5")),
+            "source": str(row.get("source_organization", "Kader Postharvest / Reference Table")),
+            "confidence": str(row.get("confidence", "High"))
+        }
 
     def generate_validation_report(self):
         datasets = {
             "01_food_dataset.csv": self.foods_df,
             "06_packaging_material_dataset.csv": self.packaging_mat_df,
-            "07_packaging_properties_dataset_Claude.csv": self.packaging_props_df,
+            "07_packaging_properties_dataset.csv": self.packaging_props_df,
             "08_barrier_properties_dataset.csv": self.barrier_props_df,
             "09_food_packaging_compatibility_MERGED.csv": self.compatibility_df,
             "10_packaging_shelf_life_dataset.csv": self.shelf_life_df,
@@ -84,7 +142,8 @@ class DataService:
             "12_recyclability_dataset.csv": self.recyclability_df,
             "13_regulatory_rules.csv": self.regulatory_df,
             "14_recommended_packaging.csv": self.recommended_df,
-            "15_MASTER_ML_DATASET.csv": self.master_ml_df
+            "15_MASTER_ML_DATASET.csv": self.master_ml_df,
+            "16_material_barrier_mechanical_reference.csv": self.material_reference_df
         }
 
         report = {
@@ -134,8 +193,8 @@ class DataService:
         df = self.foods_df
         if query:
             q = query.lower()
-            mask = df['food_name'].astype(str).str.lower().str.contains(q) | \
-                   df['food_category'].astype(str).str.lower().str.contains(q)
+            mask = df['food_name'].astype(str).str.lower().str.contains(q, regex=False) | \
+                   df['food_category'].astype(str).str.lower().str.contains(q, regex=False)
             df = df[mask]
         
         results = []

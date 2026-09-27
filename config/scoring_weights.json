@@ -1,6 +1,6 @@
 {
-  "ml_score": 0.30,
-  "barrier_score": 0.20,
+  "ml_score": 0.25,
+  "barrier_score": 0.25,
   "compatibility_score": 0.15,
   "shelf_life_score": 0.15,
   "mechanical_score": 0.10,

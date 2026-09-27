@@ -4,16 +4,18 @@ from app.services.data_service import data_service
 from app.logic.requirement_engine import requirement_engine
 from app.logic.candidate_generator import candidate_generator
 from app.logic.constraint_filter import constraint_filter
-from app.ml.train import model_trainer
+from app.logic.thickness_engine import thickness_engine
 from app.logic.scoring_engine import scoring_engine
 from app.logic.explanation_engine import explanation_engine
 
 print("Testing data loading...")
-print("Foods:", len(data_service.foods_df), "Recs:", len(data_service.recommended_df))
+print("Foods:", len(data_service.foods_df), "Recs:", len(data_service.recommended_df), "Ref Materials:", len(data_service.material_reference_df))
+assert len(data_service.material_reference_df) > 0, "16_material_barrier_mechanical_reference.csv not loaded"
 
-print("Testing ML training...")
-metrics = model_trainer.train_model()
-print("Training metrics:", metrics["metrics"]["regression"])
+print("Checking active scoring weights (ml_score restored, 6 weights sum to 1.0)...")
+print("Active weights:", scoring_engine.weights)
+assert "ml_score" in scoring_engine.weights and scoring_engine.weights["ml_score"] > 0, "ml_score should be in active scoring weights"
+assert abs(sum(scoring_engine.weights.values()) - 1.0) < 1e-3, "Scoring weights must sum to 1.0"
 
 print("\n--- TEST 1: Biscuits (Low moisture, crisp, standard ambient) ---")
 test_input = {

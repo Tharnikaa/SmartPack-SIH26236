@@ -1,3 +1,10 @@
+"""
+RETAINED FOR REFERENCE / FUTURE WORK:
+This model prediction module is retained for reference and future work when sufficient
+real, experimentally labeled outcome data is collected. It is currently NOT used in
+the active recommendation or scoring pipeline.
+"""
+
 from typing import Dict, Any, List
 import pandas as pd
 from app.ml.preprocessing import feature_pipeline

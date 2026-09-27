@@ -1,3 +1,4 @@
+import re
 from typing import List, Dict, Any, Tuple
 from app.services.data_service import data_service
 
@@ -18,11 +19,22 @@ class ConstraintFilter:
         surviving = []
         rejected = []
 
+        food_name = str(user_input.get("food_name", "")).strip().lower()
         food_cat = str(user_input.get("food_category", "")).lower()
         map_required = str(user_input.get("map_required", "No")).lower() == "yes"
         sustainability_priority = str(user_input.get("sustainability_priority", "Standard")).lower()
         preferred_package_type = str(user_input.get("preferred_package_type", "Any")).strip().lower()
         ph = float(user_input.get("ph", 6.0) or 6.0)
+
+        resp_prof = calculated_reqs.get("respiration_profile") or {}
+        respiration_level = str(resp_prof.get("respiration_class") or user_input.get("respiration_activity", "Low")).title()
+        gas_req = str((calculated_reqs.get("map_gas_requirement") or {}).get("level", "")).lower()
+
+        # Identify if this is raw fresh produce (not processed/canned/retorted/cooked)
+        is_fresh_produce = (
+            any(k in food_cat for k in ["fruit", "vegetable", "root", "tuber", "produce"]) and
+            not any(k in food_name for k in ["pickle", "jam", "jelly", "canned", "retort", "puree", "sauce", "paste", "fried", "chip", "flour", "dried", "cooked", "juice", "beverage", "syrup", "chutney"])
+        )
 
         for cand in candidates:
             reasons_rejected = []
@@ -48,17 +60,17 @@ class ConstraintFilter:
             # 4. MAP Hard Requirement
             # If user demands MAP, porous or unsealable packaging must be rejected
             if map_required:
-                if map_suitability == "No" or ("paper" in mat and "laminate" not in mat and "coated" not in mat):
+                if map_suitability == "No" or ("paper" in mat and "laminate" not in mat and "coated" not in mat and "cfb" not in mat):
                     reasons_rejected.append("MAP Incompatibility: Product requires gas barrier for modified atmosphere; non-laminated paper/porous material cannot retain CO2/N2 gas blend.")
 
             # 5. Preferred Package Form filter (if user selected specific non-Any preference)
             if preferred_package_type not in ["any", "", "all", "none"]:
                 # Check if package type matches user selection
-                if preferred_package_type in ["rigid", "bottle", "can", "jar", "box", "tub"]:
-                    if not any(k in pkg_type or k in mat for k in ["rigid", "bottle", "can", "jar", "box", "tub", "tin"]):
+                if preferred_package_type in ["rigid", "bottle", "can", "jar", "box", "tub", "tray", "punnet"]:
+                    if not any(k in pkg_type or k in mat for k in ["rigid", "bottle", "can", "jar", "box", "tub", "tin", "tray", "punnet", "crate"]):
                         reasons_rejected.append(f"Format Mismatch: User specified '{preferred_package_type}' but candidate format is flexible.")
                 elif preferred_package_type in ["flexible", "pouch", "bag", "wrap"]:
-                    if not any(k in pkg_type or k in mat for k in ["flexible", "pouch", "bag", "wrap", "film", "sachet"]):
+                    if not any(k in pkg_type or k in mat for k in ["flexible", "pouch", "bag", "wrap", "film", "sachet", "liner", "sacking", "net", "mesh"]):
                         reasons_rejected.append(f"Format Mismatch: User specified '{preferred_package_type}' but candidate format is rigid.")
 
             # 6. Strict Sustainability Constraint
@@ -66,6 +78,30 @@ class ConstraintFilter:
                 # If zero plastic requested, reject non-recyclable multi-material plastics
                 if "plastic" in mat and sust.get("recyclable") == "No":
                     reasons_rejected.append("Sustainability Incompatibility: Material is non-recyclable composite, failing user strict sustainability mandate.")
+
+            # 7. Respiration & Gas Exchange Hard Compatibility Interlock
+            # Fresh respiring produce requires controlled gas exchange / breathability.
+            # Airtight, hermetic containers (cans, glass bottles without breathability, non-perforated foil/retort pouches)
+            # cause anaerobic fermentation, off-odors, and tissue breakdown in fresh commodities.
+            if is_fresh_produce:
+                # Airtight metal cans (tinplate, aluminium can, TFS can, tin container)
+                if any(k in mat for k in ["tinplate", "aluminium can", "tfs", "tin container"]) or (re.search(r'\bcan\b', mat) and "box" not in mat and "cfb" not in mat and "jute" not in mat):
+                    reasons_rejected.append(f"Respiration Incompatibility: Fresh respiring produce ({user_input.get('food_name', 'produce')}, {respiration_level} respiration) sealed in airtight metal cans experiences rapid oxygen starvation and anaerobic rot (metal canning requires thermal sterilization for processed foods).")
+                # Airtight glass containers without ventilation
+                elif "glass bottle" in mat or "glass jar" in mat:
+                    reasons_rejected.append(f"Respiration Incompatibility: Airtight hermetic glass containers without gas exchange induce rapid anaerobic decay in fresh produce (Schedule IV lists glass for processed preserves/juices).")
+                # Impermeable aseptic/retort barrier
+                elif "retort" in mat or ("aluminium foil" in mat and "aseptic" in mat):
+                    reasons_rejected.append(f"Respiration Incompatibility: Impermeable aseptic/retort barrier suffocates respiring fresh produce unless specially micro-perforated.")
+                # Blister pack with foil/PE lid is for unit-portion jams/jellies/purees
+                elif "blister" in mat or ("thermoformed" in mat and "foil" in mat):
+                    reasons_rejected.append("Format Incompatibility: Thermoformed blister container with foil lid is intended for portion-packaged jams, jellies, or processed fruit spreads, not whole fresh respiring produce.")
+                # Stand-up pouch with spout is meant for liquids/purees
+                elif "spout" in mat or "spout" in pkg_type:
+                    reasons_rejected.append("Format Incompatibility: Stand-up pouch with spout is designed for liquid/pureed products, not whole fresh produce.")
+                # Rigid plastic jars with screw caps lack ventilation for fresh produce
+                elif any(k in mat for k in ["plastic rigid jar", "plastic jar"]):
+                    reasons_rejected.append("Format Incompatibility: Rigid plastic jars with screw caps are designed for dry foods, confectionery, or processed pastes/spreads, lacking the ventilation needed for fresh produce.")
 
             if reasons_rejected:
                 rejected.append({

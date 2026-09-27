@@ -1,3 +1,10 @@
+"""
+RETAINED FOR REFERENCE / FUTURE WORK:
+This model loader module is retained for reference and future work when sufficient
+real, experimentally labeled outcome data is collected. It is currently NOT used in
+the active recommendation or scoring pipeline.
+"""
+
 import os
 import joblib
 import logging

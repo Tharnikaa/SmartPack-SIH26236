@@ -1,3 +1,10 @@
+"""
+RETAINED FOR REFERENCE / FUTURE WORK:
+This model training pipeline is retained for reference and future work when sufficient
+real, experimentally labeled outcome data is collected. It is currently NOT used in
+the active recommendation or scoring pipeline.
+"""
+
 from typing import Tuple, Dict, Any, List
 import os
 import json
