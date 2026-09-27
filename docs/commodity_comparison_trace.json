@@ -1,0 +1,578 @@
+{
+  "Carrot": {
+    "request_json": {
+      "food_name": "Carrot",
+      "food_category": "Vegetables and vegetable products",
+      "moisture_level": 88.0,
+      "fat_oil_sensitivity": "Low",
+      "ph": 6.0,
+      "respiration_activity": "High",
+      "desired_shelf_life_days": 21,
+      "storage_temperature_c": 4.0,
+      "relative_humidity_pct": 90.0,
+      "storage_condition": "Refrigerated",
+      "transport_condition": "Refrigerated Cold-Chain",
+      "map_required": "Optional",
+      "sustainability_priority": "Standard",
+      "preferred_package_type": "Any"
+    },
+    "requirements": {
+      "disclaimer": "Calculated requirement estimate based on product inputs; not a laboratory measurement.",
+      "oxygen_requirement": {
+        "level": "Low",
+        "score": 0.2,
+        "description": "Standard barrier acceptable; product has low lipid vulnerability.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "moisture_requirement": {
+        "level": "Medium",
+        "score": 0.55,
+        "description": "Moderate moisture barrier sufficient to maintain equilibrium moisture content.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "mechanical_requirement": {
+        "level": "Medium",
+        "score": 0.5,
+        "description": "Standard structural strength; flexible pouch or folding boxboard acceptable.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sealability_requirement": {
+        "level": "Standard",
+        "score": 0.3,
+        "description": "Standard commercial seal acceptable.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "map_gas_requirement": {
+        "level": "Permeable / Breathable",
+        "description": "Active produce respiration requires controlled gas permeability or micro-perforations to prevent anaerobic spoilage.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "shelf_life_protection": {
+        "level": "Short-Term / Fresh (<1 month)",
+        "days_requested": 21,
+        "description": "Fresh distribution; priority on cold-chain integrity and hygienic containment.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "compatibility_requirement": {
+        "notes": [
+          "Standard direct food-contact compliance under FSS (Packaging) Regulations 2018."
+        ],
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sustainability_requirement": {
+        "level": "Standard EPR Compliance",
+        "description": "Compliance with Plastic Waste Management Rules 2016 and CPCB EPR guidelines.",
+        "label": "CALCULATED REQUIREMENT"
+      }
+    },
+    "candidate_funnel": {
+      "initial_generated": 12,
+      "after_hard_constraint_filtering": 12,
+      "rejected_count": 0,
+      "final_top_recommendations": 3
+    },
+    "top_recommendations": [
+      {
+        "rank": 1,
+        "material": "Glass bottle with metal or plastic caps",
+        "packaging_type": "Rigid Container",
+        "final_score": 93.0,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 1.0,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.9,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.0,
+        "thickness": "Standard container wall (not film-thickness scaled)",
+        "strength": null,
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 2,
+        "material": "Aseptic flexible multilayer packaging (paperboard/aluminium foil/PE)",
+        "packaging_type": "Standard Food Packaging",
+        "final_score": 91.2,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.95,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.85,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.95,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.3,
+        "thickness": "17 to 26 g/m2",
+        "strength": "15.5 N.m/g",
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 3,
+        "material": "Plastic bottle (PET or Polycarbonate) with PP/HDPE/aluminium caps",
+        "packaging_type": "Rigid Container",
+        "final_score": 90.9,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.9,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.9,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.3,
+        "thickness": "9 (foil) / 40-60 (total laminate) \u00b5m (reference baseline)",
+        "strength": "60.0 - 90.0 MPa",
+        "map_suitability": "Yes"
+      }
+    ]
+  },
+  "Apple": {
+    "request_json": {
+      "food_name": "Apple",
+      "food_category": "Fruits and fruit products",
+      "moisture_level": 85.0,
+      "fat_oil_sensitivity": "Low",
+      "ph": 3.8,
+      "respiration_activity": "Medium",
+      "desired_shelf_life_days": 60,
+      "storage_temperature_c": 2.0,
+      "relative_humidity_pct": 85.0,
+      "storage_condition": "Refrigerated",
+      "transport_condition": "Refrigerated Cold-Chain",
+      "map_required": "Yes",
+      "sustainability_priority": "High (Circular / Recyclable / Bio-based)",
+      "preferred_package_type": "Any"
+    },
+    "requirements": {
+      "disclaimer": "Calculated requirement estimate based on product inputs; not a laboratory measurement.",
+      "oxygen_requirement": {
+        "level": "Low",
+        "score": 0.2,
+        "description": "Standard barrier acceptable; product has low lipid vulnerability.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "moisture_requirement": {
+        "level": "High",
+        "score": 0.7,
+        "description": "Tight moisture barrier required to prevent crispness loss, caking, or rapid dehydration.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "mechanical_requirement": {
+        "level": "High",
+        "score": 0.8,
+        "description": "Rigid container, reinforced corrugated board, or cushioned thermoformed tray required to prevent physical damage.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sealability_requirement": {
+        "level": "High (Hermetic)",
+        "score": 0.95,
+        "description": "Hermetic heat-seal or gas-tight closure required",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "map_gas_requirement": {
+        "level": "Mandatory Gas Barrier",
+        "description": "Must maintain modified atmosphere (CO2/N2) without premature gas escape.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "shelf_life_protection": {
+        "level": "Medium-Term Preservation (1-6 months)",
+        "days_requested": 60,
+        "description": "Requires balanced protection for retail distribution and standard shelf stability.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "compatibility_requirement": {
+        "notes": [
+          "High-acid product: Metal surfaces must have epoxy/phenolic lacquering per IS 5837; avoid reactive bare metals."
+        ],
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sustainability_requirement": {
+        "level": "High (Circular / Recyclable / Bio-based)",
+        "description": "Mandatory single-polymer recyclability (Mono-PE/PP), paperboard, glass, or certified compostable materials.",
+        "label": "CALCULATED REQUIREMENT"
+      }
+    },
+    "candidate_funnel": {
+      "initial_generated": 12,
+      "after_hard_constraint_filtering": 11,
+      "rejected_count": 1,
+      "final_top_recommendations": 3
+    },
+    "top_recommendations": [
+      {
+        "rank": 1,
+        "material": "Glass bottle with metal or plastic caps",
+        "packaging_type": "Rigid Container",
+        "final_score": 93.0,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 1.0,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.9,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.0,
+        "thickness": "Standard container wall (not film-thickness scaled)",
+        "strength": null,
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 2,
+        "material": "Plastic bottle (PET or Polycarbonate) with PP/HDPE/aluminium caps",
+        "packaging_type": "Rigid Container",
+        "final_score": 90.9,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.9,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.9,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.3,
+        "thickness": "9 (foil) / 40-60 (total laminate) \u00b5m (reference baseline)",
+        "strength": "60.0 - 90.0 MPa",
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 3,
+        "material": "Aluminium can with easy-open end",
+        "packaging_type": "Rigid Container",
+        "final_score": 90.9,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.9,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.9,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.3,
+        "thickness": null,
+        "strength": "9.0 kg/cm2",
+        "map_suitability": "Yes"
+      }
+    ]
+  },
+  "Potato": {
+    "request_json": {
+      "food_name": "Potato",
+      "food_category": "Starchy roots and tubers",
+      "moisture_level": 78.0,
+      "fat_oil_sensitivity": "Low",
+      "ph": 6.2,
+      "respiration_activity": "Low",
+      "desired_shelf_life_days": 120,
+      "storage_temperature_c": 15.0,
+      "relative_humidity_pct": 75.0,
+      "storage_condition": "Ambient",
+      "transport_condition": "Ambient / Road",
+      "map_required": "No",
+      "sustainability_priority": "Standard",
+      "preferred_package_type": "Any"
+    },
+    "requirements": {
+      "disclaimer": "Calculated requirement estimate based on product inputs; not a laboratory measurement.",
+      "oxygen_requirement": {
+        "level": "Low",
+        "score": 0.35,
+        "description": "Standard barrier acceptable; product has low lipid vulnerability.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "moisture_requirement": {
+        "level": "High",
+        "score": 0.8,
+        "description": "Tight moisture barrier required to prevent crispness loss, caking, or rapid dehydration.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "mechanical_requirement": {
+        "level": "Medium",
+        "score": 0.5,
+        "description": "Standard structural strength; flexible pouch or folding boxboard acceptable.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sealability_requirement": {
+        "level": "High (Hermetic)",
+        "score": 0.8,
+        "description": "Hermetic heat-seal or gas-tight closure required",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "map_gas_requirement": {
+        "level": "Not Required",
+        "description": "Standard ambient atmosphere packaging suitable.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "shelf_life_protection": {
+        "level": "Medium-Term Preservation (1-6 months)",
+        "days_requested": 120,
+        "description": "Requires balanced protection for retail distribution and standard shelf stability.",
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "compatibility_requirement": {
+        "notes": [
+          "Standard direct food-contact compliance under FSS (Packaging) Regulations 2018."
+        ],
+        "label": "CALCULATED REQUIREMENT"
+      },
+      "sustainability_requirement": {
+        "level": "Standard EPR Compliance",
+        "description": "Compliance with Plastic Waste Management Rules 2016 and CPCB EPR guidelines.",
+        "label": "CALCULATED REQUIREMENT"
+      }
+    },
+    "candidate_funnel": {
+      "initial_generated": 15,
+      "after_hard_constraint_filtering": 15,
+      "rejected_count": 0,
+      "final_top_recommendations": 3
+    },
+    "top_recommendations": [
+      {
+        "rank": 1,
+        "material": "Glass bottle with metal caps or plastic (PP/HDPE) caps",
+        "packaging_type": "Rigid Container",
+        "final_score": 93.7,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 1.0,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.95,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.0,
+        "thickness": "Standard container wall (not film-thickness scaled)",
+        "strength": null,
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 2,
+        "material": "Aseptic flexible multilayer packaging (paperboard/aluminium foil/PE)",
+        "packaging_type": "Standard Food Packaging",
+        "final_score": 91.2,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.95,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.85,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.95,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.3,
+        "thickness": "17 to 26 g/m2",
+        "strength": "15.5 N.m/g",
+        "map_suitability": "Yes"
+      },
+      {
+        "rank": 3,
+        "material": "Tin-free steel (TFS) can",
+        "packaging_type": "Can",
+        "final_score": 85.9,
+        "ml_score": 0.0,
+        "score_breakdown": [
+          {
+            "factor": "Barrier Protection",
+            "score": 0.98,
+            "weight": 0.2857
+          },
+          {
+            "factor": "Compatibility & Safety",
+            "score": 0.9,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Shelf-Life Preservation",
+            "score": 0.8,
+            "weight": 0.2143
+          },
+          {
+            "factor": "Mechanical Robustness",
+            "score": 0.95,
+            "weight": 0.1429
+          },
+          {
+            "factor": "Sustainability",
+            "score": 0.55,
+            "weight": 0.1428
+          }
+        ],
+        "otr": 0.0,
+        "wvtr": 0.0,
+        "thickness": null,
+        "strength": "9.0 kg/cm2",
+        "map_suitability": "Yes"
+      }
+    ]
+  }
+}
