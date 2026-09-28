@@ -16,20 +16,20 @@ import {
 } from 'lucide-react';
 
 const defaultForm: AnalyzeRequest = {
-  food_name: 'Biscuits / Cookies',
-  food_category: 'Cereals and cereal products',
-  moisture_level: 4.5,
-  fat_oil_sensitivity: 'Medium',
-  ph: 6.5,
-  respiration_activity: 'Low',
-  desired_shelf_life_days: 180,
-  storage_temperature_c: 25.0,
-  relative_humidity_pct: 65.0,
+  food_name: '',
+  food_category: '',
+  moisture_level: '',
+  fat_oil_sensitivity: '',
+  ph: '',
+  respiration_activity: '',
+  desired_shelf_life_days: '',
+  storage_temperature_c: '',
+  relative_humidity_pct: '',
   storage_condition: 'Ambient',
-  transport_condition: 'Ambient / Road',
-  map_required: 'No',
-  sustainability_priority: 'Standard',
-  preferred_package_type: 'Any'
+  transport_condition: '',
+  map_required: '',
+  sustainability_priority: '',
+  preferred_package_type: ''
 };
 
 export function App() {
@@ -45,7 +45,24 @@ export function App() {
     setLoading(true);
     setError(null);
     try {
-      const data = await analyzePackaging(formData);
+      const sanitizedPayload: AnalyzeRequest = {
+        ...formData,
+        food_name: formData.food_name?.trim() || 'Potato, brown skin, big (Solanum tuberosum)',
+        food_category: formData.food_category || 'Roots and Tubers',
+        moisture_level: formData.moisture_level !== '' && formData.moisture_level !== undefined ? Number(formData.moisture_level) : 80.7,
+        fat_oil_sensitivity: formData.fat_oil_sensitivity || 'Low',
+        ph: formData.ph !== '' && formData.ph !== undefined ? Number(formData.ph) : 6.2,
+        respiration_activity: formData.respiration_activity || 'Low',
+        desired_shelf_life_days: formData.desired_shelf_life_days !== '' && formData.desired_shelf_life_days !== undefined ? Number(formData.desired_shelf_life_days) : 120,
+        storage_temperature_c: formData.storage_temperature_c !== '' && formData.storage_temperature_c !== undefined ? Number(formData.storage_temperature_c) : 15.0,
+        relative_humidity_pct: formData.relative_humidity_pct !== '' && formData.relative_humidity_pct !== undefined ? Number(formData.relative_humidity_pct) : 75.0,
+        storage_condition: formData.storage_condition || 'Ambient',
+        transport_condition: formData.transport_condition || 'Ambient / Road',
+        map_required: formData.map_required || 'No',
+        sustainability_priority: formData.sustainability_priority || 'High (Recyclable)',
+        preferred_package_type: formData.preferred_package_type || 'Any'
+      };
+      const data = await analyzePackaging(sanitizedPayload);
       setResults(data);
       // Smooth scroll down to results
       setTimeout(() => {

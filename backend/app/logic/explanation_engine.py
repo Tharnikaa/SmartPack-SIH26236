@@ -80,10 +80,19 @@ class ExplanationEngine:
                 {"factor": "Sustainability", "score": score_breakdown.get("sustainability_score", 0), "weight": scoring_data.get("applied_weights", {}).get("sustainability_score", 0.10)}
             ]
 
+            # Sanitize expected shelf life to prevent any nan leakage
+            raw_db_sl = cand.get("expected_shelf_life")
+            if not raw_db_sl or str(raw_db_sl).strip().lower() in ["nan", "none", "", "not specified", "data unavailable"]:
+                clean_db_sl = "Not available in source database"
+            else:
+                clean_db_sl = str(raw_db_sl).strip()
+
             recommendations.append({
                 "rank": rank,
                 "rank_title": rank_title,
                 "material": mat,
+                "primary_packaging": cand.get("primary_packaging", mat),
+                "secondary_packaging": cand.get("secondary_packaging", "Not specified"),
                 "packaging_type": pkg_type,
                 "packaging_structure": cand.get("packaging_structure", "Flexible/Rigid"),
                 "suitability_score": final_score,
@@ -104,7 +113,7 @@ class ExplanationEngine:
                 "sustainability": cand.get("sustainability", {}),
                 "shelf_life_suitability": {
                     "requested_days": user_input.get("desired_shelf_life_days", 90),
-                    "expected_shelf_life_db": cand.get("expected_shelf_life", "Not specified"),
+                    "expected_shelf_life_db": clean_db_sl,
                     "estimated_protection_level": "High" if score_breakdown.get("shelf_life_score", 0) >= 0.8 else "Moderate",
                     "label": "DATABASE VALUE (Expected) / DERIVED SCORE (Protection)"
                 },

@@ -39,8 +39,10 @@ scratch/
 dataset_inspection_raw.json
 inspect_datasets.py
 generate_report.py
+backend/data/
 
 # Environment variables & secrets
 .env
 *.env
 .env.local
+

@@ -58,9 +58,9 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
     }
   }
 
-  // Benchmark formatting (clean up 'nan' or empty strings)
-  const rawBenchmark = shelf_life_suitability.expected_shelf_life_db;
-  const benchmarkClean = (!rawBenchmark || rawBenchmark.toLowerCase() === 'nan' || rawBenchmark.trim() === '') 
+  // Benchmark formatting (clean up 'nan', 'none', or empty strings)
+  const rawBenchmark = shelf_life_suitability?.expected_shelf_life_db;
+  const benchmarkClean = (!rawBenchmark || ['nan', 'none', 'not specified', 'data unavailable', ''].includes(rawBenchmark.toLowerCase().trim())) 
     ? 'Not available' 
     : rawBenchmark;
 
@@ -99,6 +99,20 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
         <div className="text-xs font-mono text-slate-600 mt-1 uppercase tracking-wide">
           {displayStructure.toUpperCase()}
         </div>
+
+        {/* Multi-component Packaging Breakdown (Primary vs Secondary) */}
+        {recommendation.secondary_packaging && 
+         !recommendation.secondary_packaging.toLowerCase().includes('not specified') && 
+         !recommendation.secondary_packaging.toLowerCase().includes('none') && (
+          <div className="mt-2.5 p-2 bg-slate-50 rounded border border-slate-200 text-[11px] space-y-1">
+            <div className="text-slate-700">
+              <span className="font-semibold text-slate-900">Primary Contact:</span> {recommendation.primary_packaging}
+            </div>
+            <div className="text-slate-700">
+              <span className="font-semibold text-slate-900">Secondary Packaging:</span> {recommendation.secondary_packaging}
+            </div>
+          </div>
+        )}
 
         {/* Type & Model Suitability Bar */}
         <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-700">

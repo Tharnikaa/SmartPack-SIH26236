@@ -220,7 +220,7 @@ class ScoringEngine:
         # -------------------------------------------------------------
         mech = candidate.get("mechanical_properties", {})
         tensile = str(mech.get("tensile_strength", "")).lower()
-        burst = str(mech.get("burst_index", "")).lower()
+        burst = str(mech.get("burst_strength", "") or mech.get("burst_index", "")).lower()
         req_mech_level = reqs.get("mechanical_requirement", {}).get("level", "Medium")
 
         is_rigid = any(k in pkg_type or k in mat_lower for k in [

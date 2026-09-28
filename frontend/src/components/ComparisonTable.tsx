@@ -13,7 +13,16 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
   const top3 = recommendations.slice(0, 3);
 
   const getVal = (val: any) => {
-    if (val === null || val === undefined || val === '' || String(val).toLowerCase() === 'nan' || String(val).toLowerCase().includes('data unavailable')) {
+    if (
+      val === null ||
+      val === undefined ||
+      val === '' ||
+      String(val).toLowerCase() === 'nan' ||
+      String(val).toLowerCase().includes('(nan)') ||
+      String(val).toLowerCase().includes('data unavailable') ||
+      String(val).toLowerCase() === 'none' ||
+      String(val).toLowerCase() === 'undefined'
+    ) {
       return <span className="text-slate-400 italic">Not available</span>;
     }
     return String(val);
@@ -25,8 +34,16 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
       values: top3.map((r) => `#${r.rank} ${r.rank === 1 ? 'Primary Recommendation' : 'Alternative Option'}`)
     },
     {
-      label: 'Material Name',
+      label: 'Material Specification',
       values: top3.map((r) => r.material)
+    },
+    {
+      label: 'Primary Packaging Contact',
+      values: top3.map((r) => r.primary_packaging || r.material)
+    },
+    {
+      label: 'Secondary / Outer System',
+      values: top3.map((r) => r.secondary_packaging || 'Not applicable (Single unit)')
     },
     {
       label: 'Packaging Type',
@@ -53,8 +70,12 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
       values: top3.map((r) => r.mechanical_properties?.thickness_spec || 'Not available')
     },
     {
-      label: 'Mechanical Strength',
-      values: top3.map((r) => r.mechanical_properties?.tensile_strength || r.mechanical_properties?.burst_index || 'Not available')
+      label: 'Tensile Strength (MPa)',
+      values: top3.map((r) => r.mechanical_properties?.tensile_strength || 'Not available / unit not standardized')
+    },
+    {
+      label: 'Bursting Strength',
+      values: top3.map((r) => r.mechanical_properties?.burst_strength || r.mechanical_properties?.burst_index || 'Not available')
     },
     {
       label: 'Sealability / Closure',
@@ -70,7 +91,13 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
     },
     {
       label: 'Shelf-Life Suitability',
-      values: top3.map((r) => `${r.shelf_life_suitability.estimated_protection_level} Protection (${r.shelf_life_suitability.expected_shelf_life_db})`)
+      values: top3.map((r) => {
+        const exp = r.shelf_life_suitability?.expected_shelf_life_db;
+        const hasValidExp = exp && !['nan', 'none', 'not specified', 'data unavailable', 'not available', ''].includes(String(exp).trim().toLowerCase());
+        return hasValidExp
+          ? `${r.shelf_life_suitability.estimated_protection_level} Protection (${exp})`
+          : `${r.shelf_life_suitability.estimated_protection_level} Protection (Not available)`;
+      })
     },
     {
       label: 'Sustainability / Recyclability',

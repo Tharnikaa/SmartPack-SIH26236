@@ -1,13 +1,13 @@
 export interface AnalyzeRequest {
   food_name: string;
   food_category: string;
-  moisture_level: number;
+  moisture_level: number | '';
   fat_oil_sensitivity: string;
-  ph: number;
+  ph: number | '';
   respiration_activity: string;
-  desired_shelf_life_days: number;
-  storage_temperature_c: number;
-  relative_humidity_pct: number;
+  desired_shelf_life_days: number | '';
+  storage_temperature_c: number | '';
+  relative_humidity_pct: number | '';
   storage_condition: string;
   transport_condition: string;
   map_required: string;
@@ -46,6 +46,8 @@ export interface Recommendation {
   rank: number;
   rank_title: string;
   material: string;
+  primary_packaging?: string;
+  secondary_packaging?: string;
   packaging_type: string;
   packaging_structure: string;
   suitability_score: number;
@@ -70,8 +72,11 @@ export interface Recommendation {
   };
   mechanical_properties: {
     tensile_strength?: string;
+    burst_strength?: string;
+    compression_strength?: string;
     burst_index?: string;
     thickness_spec?: string;
+    mechanical_note?: string;
     data_status: string;
     label: string;
   };

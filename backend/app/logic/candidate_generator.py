@@ -1,4 +1,4 @@
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 import re
 import pandas as pd
 from app.services.data_service import data_service
@@ -146,6 +146,60 @@ class CandidateGenerator:
 
         return None
 
+    def _parse_packaging_system(self, mat_raw: str, raw_type: Any, raw_struct: Any) -> Tuple[str, str, str, str]:
+        """
+        Parses packaging material string into primary packaging, secondary packaging, and consistent packaging type.
+        Ensures that flexible pouches are never labeled as rigid containers, and primary/secondary
+        components are explicitly identified.
+        """
+        m = mat_raw.strip()
+        m_lower = m.lower()
+
+        pkg_struct = "Standard Form" if pd.isna(raw_struct) or str(raw_struct).strip().lower() in ["nan", "none", ""] else str(raw_struct).strip()
+
+        # 1. Multi-component packaging systems (Primary + Secondary)
+        if " in " in m_lower:
+            parts = re.split(r'\s+in\s+', m, flags=re.IGNORECASE, maxsplit=1)
+            primary_pkg = parts[0].strip()
+            secondary_pkg = parts[1].strip()
+            if any(k in secondary_pkg.lower() for k in ["box", "carton", "crate", "tin", "fibreboard"]):
+                pkg_type = f"Combination Packaging ({primary_pkg} in {secondary_pkg})"
+            else:
+                pkg_type = f"Multi-Component Packaging ({primary_pkg} with {secondary_pkg})"
+        elif "inner-lined with" in m_lower:
+            secondary_pkg = "Corrugated Fibreboard (CFB) box"
+            primary_pkg = "Flexible film liner"
+            pkg_type = "Ventilated Box with Film Liner"
+        elif "with overwrap" in m_lower:
+            primary_pkg = m
+            secondary_pkg = "Not applicable (Single retail unit)"
+            pkg_type = "Rigid Tray with Flexible Overwrap"
+        elif "punnet" in m_lower:
+            primary_pkg = m
+            secondary_pkg = "None (Ventilated container)"
+            pkg_type = "Ventilated Punnet / Container"
+        elif any(k in m_lower for k in ["jute", "sacking", "woven sack"]):
+            primary_pkg = m
+            secondary_pkg = "None (Breathable woven sack)"
+            pkg_type = "Woven Sack"
+        elif any(k in m_lower for k in ["pouch", "bag", "wrap", "film", "sachet", "liner"]):
+            primary_pkg = m
+            secondary_pkg = "None (Flexible format)"
+            pkg_type = "Flexible Pouch / Wrap"
+        elif any(k in m_lower for k in ["bottle", "jar", "can", "tin", "tub", "crate"]):
+            primary_pkg = m
+            secondary_pkg = "None (Rigid container)"
+            pkg_type = "Rigid Container"
+        else:
+            if pd.notna(raw_type) and str(raw_type).strip().lower() not in ["nan", "none", ""]:
+                pkg_type = str(raw_type).strip()
+            else:
+                pkg_type = "Standard Food Packaging"
+            primary_pkg = m
+            secondary_pkg = "Not specified"
+
+        return pkg_type, primary_pkg, secondary_pkg, pkg_struct
+
     def generate_candidates(self, user_input: Dict[str, Any], calculated_reqs: Dict[str, Any]) -> List[Dict[str, Any]]:
         """
         Generates packaging candidates from the authoritative FSSAI Schedule IV recommendations
@@ -204,25 +258,30 @@ class CandidateGenerator:
             matched_rows = rec_df.head(15)
 
         for idx, row in matched_rows.iterrows():
-            mat_raw = str(row.get("recommended_packaging_material", "Unknown"))
+            mat_raw = str(row.get("recommended_packaging_material", "Unknown")).strip()
             raw_type = row.get("recommended_packaging_type")
-            if pd.isna(raw_type) or str(raw_type).strip().lower() in ["nan", "none", ""]:
-                if any(k in mat_raw.lower() for k in ["bottle", "jar", "can", "tin", "box", "tub", "tray", "punnet", "crate"]):
-                    pkg_type = "Rigid Container"
-                elif any(k in mat_raw.lower() for k in ["pouch", "bag", "wrap", "film", "sachet", "liner", "sacking", "net", "mesh"]):
-                    pkg_type = "Flexible Pouch / Wrap"
-                else:
-                    pkg_type = "Standard Food Packaging"
-            else:
-                pkg_type = str(raw_type).strip()
-
             raw_struct = row.get("recommended_packaging_structure")
-            pkg_struct = "Standard Form" if pd.isna(raw_struct) or str(raw_struct).strip().lower() in ["nan", "none"] else str(raw_struct).strip()
-            expected_sl = str(row.get("expected_shelf_life", "Not specified"))
-            storage_cond = str(row.get("storage_condition", "Ambient"))
-            source_doc = str(row.get("source_document", "FSSAI Packaging Regulations / ICAR"))
-            page_num = str(row.get("page_number", ""))
-            original_reason = str(row.get("reason", "Regulator-endorsed packaging for this food category"))
+
+            pkg_type, primary_pkg, secondary_pkg, pkg_struct = self._parse_packaging_system(mat_raw, raw_type, raw_struct)
+
+            # Clean expected shelf-life string to ensure NaN is never emitted
+            raw_sl = row.get("expected_shelf_life")
+            if pd.isna(raw_sl) or str(raw_sl).strip().lower() in ["nan", "none", ""]:
+                expected_sl = "Not available in source database"
+            else:
+                expected_sl = str(raw_sl).strip()
+
+            raw_cond = row.get("storage_condition")
+            storage_cond = "Ambient" if pd.isna(raw_cond) or str(raw_cond).strip().lower() in ["nan", "none", ""] else str(raw_cond).strip()
+
+            raw_doc = row.get("source_document")
+            source_doc = "FSSAI Packaging Regulations / ICAR" if pd.isna(raw_doc) or str(raw_doc).strip().lower() in ["nan", "none", ""] else str(raw_doc).strip()
+
+            raw_pg = row.get("page_number")
+            page_num = "Not available" if pd.isna(raw_pg) or str(raw_pg).strip().lower() in ["nan", "none", ""] else str(raw_pg).strip()
+
+            raw_rsn = row.get("reason")
+            original_reason = "Regulator-endorsed packaging for this food category" if pd.isna(raw_rsn) or str(raw_rsn).strip().lower() in ["nan", "none", ""] else str(raw_rsn).strip()
 
             # Packaging Material Metadata & Properties Lookup
             barrier_data = self._lookup_barrier(mat_raw)
@@ -268,6 +327,8 @@ class CandidateGenerator:
             candidate = {
                 "candidate_id": f"CAND-{idx:03d}",
                 "material": mat_raw,
+                "primary_packaging": primary_pkg,
+                "secondary_packaging": secondary_pkg,
                 "packaging_type": pkg_type,
                 "packaging_structure": pkg_struct,
                 "storage_condition": storage_cond,
@@ -289,8 +350,11 @@ class CandidateGenerator:
                 },
                 "mechanical_properties": {
                     "tensile_strength": mechanical_props.get("tensile_strength"),
-                    "burst_index": mechanical_props.get("burst_index"),
+                    "burst_strength": mechanical_props.get("burst_strength"),
+                    "compression_strength": mechanical_props.get("compression_strength"),
+                    "burst_index": mechanical_props.get("burst_strength") or mechanical_props.get("burst_index"),
                     "thickness_spec": mechanical_props.get("thickness_spec"),
+                    "mechanical_note": mechanical_props.get("mechanical_note"),
                     "data_status": mechanical_props.get("data_status", "Data unavailable in source database"),
                     "label": mechanical_props.get("label", "DATABASE VALUE")
                 },
@@ -403,67 +467,78 @@ class CandidateGenerator:
 
     def _lookup_properties(self, material_name: str) -> Dict[str, Any]:
         """
-        Looks up mechanical properties in 07_packaging_properties_dataset.csv first (DATABASE VALUE).
-        If unavailable, falls back to 16_material_barrier_mechanical_reference.csv (REFERENCE VALUE).
+        Looks up mechanical properties from 07_packaging_properties_dataset.csv (DATABASE VALUE)
+        or 16_material_barrier_mechanical_reference.csv (REFERENCE VALUE).
+        Strictly standardizes units and prevents conflation of tensile strength (MPa) with
+        strip tensile force (kg/cm) or bursting pressure (kg/cm2).
         """
         df = data_service.packaging_props_df
-        results = {}
+        results = {
+            "tensile_strength": None,
+            "burst_strength": None,
+            "compression_strength": None,
+            "burst_index": None,
+            "thickness_spec": None,
+            "mechanical_note": None,
+            "data_status": "Data unavailable in source database",
+            "label": "DATABASE VALUE"
+        }
+
+        # Check reference dataset first for standardized MPa tensile specs
+        ref = self._match_reference_row(material_name)
+        if ref is not None:
+            t_lo = ref.get("tensile_strength_low_MPa")
+            t_hi = ref.get("tensile_strength_high_MPa")
+            if pd.notna(t_lo) and pd.notna(t_hi) and str(t_lo) != "nan":
+                results["tensile_strength"] = f"{t_lo} - {t_hi} MPa"
+            elif pd.notna(t_lo) and str(t_lo) != "nan":
+                results["tensile_strength"] = f"{t_lo} MPa"
+
+            ref_gauge = ref.get("reference_thickness_micron")
+            if pd.notna(ref_gauge) and str(ref_gauge).strip() != "":
+                if any(c.isdigit() for c in str(ref_gauge)) and not any(k in str(ref_gauge).lower() for k in ["standard", "gauge", "n/a"]):
+                    results["thickness_spec"] = f"{ref_gauge} µm (reference baseline)"
+                else:
+                    results["thickness_spec"] = str(ref_gauge)
+            results["data_status"] = f"Published literature reference ({ref.get('source_citation', 'Robertson / Selke')})"
+            results["label"] = "REFERENCE VALUE (published literature)"
+            results["mechanical_note"] = str(ref.get("mechanical_note", "")) if pd.notna(ref.get("mechanical_note")) else None
+
+        # Complement with specific BIS empirical measurements from 07_packaging_properties_dataset.csv
         if not df.empty:
             mat_lower = material_name.lower()
             matched = df[df['material_name'].astype(str).str.lower().apply(lambda x: any(k in mat_lower for k in x.split()[:2]))]
             for _, r in matched.iterrows():
                 p_name = str(r.get("property_name", "")).lower()
-                val = str(r.get("property_value", ""))
-                unit = str(r.get("unit", ""))
-                if "tensile" in p_name:
-                    results["tensile_strength"] = f"{val} {unit}".strip()
-                elif "burst" in p_name:
-                    results["burst_index"] = f"{val} {unit}".strip()
-                elif "thickness" in p_name or "substance" in p_name:
-                    results["thickness_spec"] = f"{val} {unit}".strip()
+                val = str(r.get("property_value", "")).strip()
+                unit = str(r.get("unit", "")).strip()
+                if "burst" in p_name:
+                    if "kg/cm2" in unit:
+                        try:
+                            kpa_val = round(float(val) * 98.0665, 1)
+                            results["burst_strength"] = f"{val} kg/cm² ({kpa_val} kPa)"
+                        except ValueError:
+                            results["burst_strength"] = f"{val} {unit}"
+                    else:
+                        results["burst_strength"] = f"{val} {unit}"
+                elif "compression" in p_name:
+                    results["compression_strength"] = f"{val} {unit}"
+                elif "tensile" in p_name and not results["tensile_strength"]:
+                    # Check unit: if kg/cm (linear force), do NOT pretend it is MPa
+                    if "kg/cm" in unit and "kg/cm2" not in unit:
+                        results["tensile_strength"] = "Not available / unit not standardized"
+                        results["mechanical_note"] = f"Source specification: {val} kg/cm (strip tensile breaking force per IS 5012; cross-sectional thickness not standardized to MPa)"
+                    elif "mpa" in unit.lower():
+                        results["tensile_strength"] = f"{val} MPa"
+                    else:
+                        results["tensile_strength"] = "Not available / unit not standardized"
+                elif ("thickness" in p_name or "substance" in p_name) and not results["thickness_spec"]:
+                    results["thickness_spec"] = f"{val} {unit}"
 
-        if results and (results.get("tensile_strength") or results.get("burst_index")):
-            results["data_status"] = "BIS Standard specifications available"
-            results["label"] = "DATABASE VALUE"
-            return results
+        if not results["tensile_strength"]:
+            results["tensile_strength"] = "Not available / unit not standardized"
 
-        # Fallback to literature reference
-        ref = self._match_reference_row(material_name)
-        if ref is not None:
-            t_lo = ref.get("tensile_strength_low_MPa")
-            t_hi = ref.get("tensile_strength_high_MPa")
-            tensile_str = None
-            if pd.notna(t_lo) and pd.notna(t_hi) and str(t_lo) != "nan":
-                tensile_str = f"{t_lo} - {t_hi} MPa"
-            elif pd.notna(t_lo) and str(t_lo) != "nan":
-                tensile_str = f"{t_lo} MPa"
-
-            ref_gauge = ref.get("reference_thickness_micron")
-            if pd.notna(ref_gauge) and str(ref_gauge).strip() != "":
-                if any(c.isdigit() for c in str(ref_gauge)) and not any(k in str(ref_gauge).lower() for k in ["standard", "gauge", "n/a"]):
-                    thick_str = f"{ref_gauge} µm (reference baseline)"
-                else:
-                    thick_str = str(ref_gauge)
-            else:
-                thick_str = None
-            mech_note = str(ref.get("mechanical_note", "")) if pd.notna(ref.get("mechanical_note")) else None
-
-            return {
-                "tensile_strength": tensile_str,
-                "burst_index": None,
-                "thickness_spec": thick_str,
-                "mechanical_note": mech_note,
-                "data_status": f"Published literature reference ({ref.get('source_citation', 'Robertson / Selke')})",
-                "label": "REFERENCE VALUE (published literature)"
-            }
-
-        return {
-            "tensile_strength": None,
-            "burst_index": None,
-            "thickness_spec": None,
-            "data_status": "Data unavailable in source database",
-            "label": "DATABASE VALUE"
-        }
+        return results
 
     def _lookup_sealability(self, material_name: str, pkg_type: str) -> str:
         """
