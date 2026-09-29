@@ -4,6 +4,7 @@ import { FoodInputForm } from './components/FoodInputForm';
 import { RequirementMeters } from './components/RequirementMeters';
 import { RecommendationCard } from './components/RecommendationCard';
 import { ComparisonTable } from './components/ComparisonTable';
+import { ComparisonModal } from './components/ComparisonModal';
 import { WhyPackagingModal } from './components/WhyPackagingModal';
 import { DeveloperDrawer } from './components/DeveloperDrawer';
 import { PackagingCatalogView } from './components/PackagingCatalogView';
@@ -11,7 +12,7 @@ import { ModelCardView } from './components/ModelCardView';
 import { AnalyzeRequest, AnalyzeResponse, Recommendation } from './types';
 import { analyzePackaging, API_BASE } from './services/api';
 import { 
-  Sparkles, ShieldAlert, Award, CheckCircle2, AlertTriangle 
+  Sparkles, ShieldAlert, Award, CheckCircle2, AlertTriangle, ArrowLeftRight 
 } from 'lucide-react';
 
 const defaultForm: AnalyzeRequest = {
@@ -73,6 +74,7 @@ export function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [selectedRec, setSelectedRec] = useState<Recommendation | null>(null);
+  const [showComparisonModal, setShowComparisonModal] = useState(false);
 
   const handleAnalyze = async () => {
     setLoading(true);
@@ -223,9 +225,14 @@ export function App() {
                           Evaluated against FSSAI Schedule IV, hard safety constraints, and ranked via transparent hybrid scoring.
                         </p>
                       </div>
-                      <div className="text-xs font-mono text-slate-500 bg-white px-3 py-1.5 rounded-lg border border-slate-200">
-                        Total Candidates Screened: <strong>{results.all_ranked_candidates_count || 3}</strong>
-                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowComparisonModal(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-violet-600 hover:bg-violet-700 active:bg-violet-800 text-white font-semibold text-xs rounded-xl shadow-xs hover:shadow transition-all active:scale-95 cursor-pointer shrink-0"
+                      >
+                        <ArrowLeftRight className="w-4 h-4" />
+                        <span>Complete Comparison</span>
+                      </button>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -237,10 +244,23 @@ export function App() {
                         />
                       ))}
                     </div>
-                  </div>
 
-                  {/* Screen 5: Comparison Table */}
-                  <ComparisonTable recommendations={results.recommendations} />
+                    {/* Bottom Prompt to Open Comparison */}
+                    <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
+                      <div>
+                        <h4 className="text-xs font-bold text-slate-900">Need a comprehensive technical parameter audit?</h4>
+                        <p className="text-[11px] text-slate-500">Compare OTR, WVTR, tensile strength, sealability, and shelf-life benchmarks side-by-side.</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setShowComparisonModal(true)}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs rounded-xl border border-slate-200 shadow-2xs transition-colors shrink-0 cursor-pointer"
+                      >
+                        <ArrowLeftRight className="w-3.5 h-3.5 text-violet-600" />
+                        <span>View Complete Comparison</span>
+                      </button>
+                    </div>
+                  </div>
                 </>
               )}
             </div>
@@ -256,6 +276,16 @@ export function App() {
             userInput={formData}
             requirements={results?.requirements}
             onClose={() => setSelectedRec(null)}
+          />
+        </ErrorBoundary>
+      )}
+
+      {/* Complete Comparison Modal */}
+      {showComparisonModal && results?.recommendations && (
+        <ErrorBoundary>
+          <ComparisonModal
+            recommendations={results.recommendations}
+            onClose={() => setShowComparisonModal(false)}
           />
         </ErrorBoundary>
       )}
