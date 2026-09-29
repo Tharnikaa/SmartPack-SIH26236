@@ -9,7 +9,7 @@ import { DeveloperDrawer } from './components/DeveloperDrawer';
 import { PackagingCatalogView } from './components/PackagingCatalogView';
 import { ModelCardView } from './components/ModelCardView';
 import { AnalyzeRequest, AnalyzeResponse, Recommendation } from './types';
-import { analyzePackaging } from './services/api';
+import { analyzePackaging, API_BASE } from './services/api';
 import { 
   Sparkles, ShieldAlert, Award, CheckCircle2, AlertTriangle 
 } from 'lucide-react';
@@ -162,7 +162,7 @@ export function App() {
               <AlertTriangle className="w-5 h-5 text-rose-600 flex-shrink-0" />
               <div>
                 <strong className="font-bold">Error during analysis:</strong> {error}
-                <p className="text-[11px] text-rose-700 mt-0.5">Please ensure the backend API is running on localhost:8000.</p>
+                <p className="text-[11px] text-rose-700 mt-0.5">Please ensure the backend API is running on {API_BASE.replace('/api', '')}.</p>
               </div>
             </div>
           )}
