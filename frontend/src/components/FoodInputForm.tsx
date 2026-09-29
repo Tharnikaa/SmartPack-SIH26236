@@ -10,14 +10,49 @@ interface Props {
   loading: boolean;
 }
 
+const FSSAI_DEFAULT_CATEGORIES = [
+  'Animal Meat',
+  'Beverages (other than Dairy and Fruits & Vegetables based)',
+  'Cereals and Millets',
+  'Cereals and cereal products',
+  'Condiments and Spices',
+  'Dairy',
+  'Egg and Egg Products',
+  'Fats, oils and fat emulsions',
+  'Fish and fish products or Seafood',
+  'Freshwater Fish and Shellfish',
+  'Fruit & Vegetable products',
+  'Grain Legumes',
+  'Green Leafy Vegetables',
+  'Marine Fish',
+  'Meat and Meat Products or Poultry Products',
+  'Milk and Milk Products',
+  'Miscellaneous Foods (beverages)',
+  'Mushrooms',
+  'Nuts and Oil Seeds',
+  'Other Vegetables',
+  'Poultry',
+  'Ready-to-eat meal',
+  'Roots and Tubers',
+  'Salt, spices, Condiments and related products',
+  'Sweetening agents including Honey',
+  'Sweets and Confectionery'
+];
+
 export const FoodInputForm: React.FC<Props> = ({ formData, setFormData, onAnalyze, loading }) => {
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(FSSAI_DEFAULT_CATEGORIES);
   const [foodSearchQuery, setFoodSearchQuery] = useState('');
   const [foodSuggestions, setFoodSuggestions] = useState<any[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
 
   useEffect(() => {
-    fetchCategories().then(setCategories).catch(console.error);
+    fetchCategories()
+      .then((res) => {
+        if (Array.isArray(res) && res.length > 0) {
+          setCategories(res);
+        }
+      })
+      .catch(console.error);
   }, []);
 
   useEffect(() => {

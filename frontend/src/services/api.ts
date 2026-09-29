@@ -16,13 +16,27 @@ export async function analyzePackaging(payload: AnalyzeRequest): Promise<Analyze
 }
 
 export async function fetchFoods(query: string = '') {
-  const res = await fetch(`${API_BASE}/foods?q=${encodeURIComponent(query)}`);
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/foods?q=${encodeURIComponent(query)}`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn('fetchFoods error:', err);
+    return [];
+  }
 }
 
 export async function fetchCategories(): Promise<string[]> {
-  const res = await fetch(`${API_BASE}/categories`);
-  return res.json();
+  try {
+    const res = await fetch(`${API_BASE}/categories`);
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch (err) {
+    console.warn('fetchCategories error:', err);
+    return [];
+  }
 }
 
 export async function fetchMLStatus(): Promise<MLStatusResponse> {
