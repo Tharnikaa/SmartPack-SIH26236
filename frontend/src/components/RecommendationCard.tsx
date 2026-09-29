@@ -1,7 +1,7 @@
 import React from 'react';
 import { Recommendation } from '../types';
 import { OriginBadge } from './OriginBadge';
-import { ArrowRight, AlertTriangle, Wind, Droplets, Sun } from 'lucide-react';
+import { ArrowRight, Wind, Droplets, Sun } from 'lucide-react';
 
 interface Props {
   recommendation: Recommendation;
@@ -18,7 +18,6 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
     ml_prediction,
     barrier_properties,
     sustainability,
-    shelf_life_suitability,
     technical_data_coverage,
     technical_coverage_pct
   } = recommendation;
@@ -72,11 +71,6 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
     }
   }
 
-  // Benchmark formatting (clean up 'nan', 'none', or empty strings)
-  const rawBenchmark = shelf_life_suitability?.expected_shelf_life_db;
-  const benchmarkClean = (!rawBenchmark || ['nan', 'none', 'not specified', 'data unavailable', ''].includes(rawBenchmark.toLowerCase().trim())) 
-    ? 'Not available' 
-    : rawBenchmark;
 
   // Header rank title matching wireframe
   const rankLabel = rank === 1 ? '#1 RECOMMENDED PACKAGING' : `#${rank} ALTERNATIVE PACKAGING`;
@@ -214,52 +208,6 @@ export const RecommendationCard: React.FC<Props> = ({ recommendation, onOpenExpl
         </div>
       </div>
 
-      {/* ─── 3. PRESERVATION SUITABILITY SECTION ─── */}
-      <div className="border-t border-slate-200 p-5 py-3.5">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-900">
-            PRESERVATION SUITABILITY
-          </span>
-          {shelf_life_suitability?.additional_validation_required ? (
-            <span className="text-[10px] font-bold text-amber-800 bg-amber-50 px-2 py-0.5 rounded border border-amber-300">
-              Additional Validation Required
-            </span>
-          ) : (
-            <span className="text-[10px] font-bold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-300">
-              Fully Validated
-            </span>
-          )}
-        </div>
-
-        <div className="space-y-1.5 text-xs">
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600">Target Shelf Life</span>
-            <span className="font-mono font-semibold text-slate-900">
-              {shelf_life_suitability.requested_days} days
-            </span>
-          </div>
-
-          <div className="flex justify-between items-center">
-            <span className="text-slate-600">Validated Benchmark</span>
-            <span className="text-slate-800 font-mono text-[11px] font-semibold truncate max-w-[170px]" title={benchmarkClean}>
-              {benchmarkClean}
-            </span>
-          </div>
-
-          {shelf_life_suitability?.additional_validation_required && (
-            <div className="mt-2.5 p-2 bg-amber-50/90 rounded-lg border border-amber-200/90 text-[11px] text-amber-900 flex items-start gap-1.5">
-              <AlertTriangle className="w-3.5 h-3.5 text-amber-600 flex-shrink-0 mt-0.5" />
-              <div className="leading-snug">
-                <span className="font-semibold block">Additional validation required for target shelf life</span>
-                <span className="text-[10px] text-amber-700">
-                  Target: {shelf_life_suitability.requested_days} days • Validated benchmark: {benchmarkClean}
-                  {benchmarkClean !== 'Not available' ? ` (Benchmark does not cover full ${shelf_life_suitability.requested_days}d target)` : ''}
-                </span>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
 
       {/* ─── 4. MATERIAL & SUSTAINABILITY SECTION ─── */}
       <div className="border-t border-slate-200 p-5 py-3.5 bg-slate-50/50">
