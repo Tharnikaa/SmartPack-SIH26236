@@ -161,10 +161,18 @@ def analyze_packaging(request: AnalyzeRequest):
             "rejected_count": len(rejected_candidates),
             "final_top_recommendations": len(recommendations)
         },
-        "rejected_sample": [
-            {"material": r.get("material"), "rejection_reasons": r.get("rejection_reasons")}
-            for r in rejected_candidates[:3]
-        ],
+        "rejected_sample": (
+            # Pick candidates with distinct rejection categories to avoid repetitive reasons
+            lambda cands: [
+                {"material": r.get("material"), "rejection_reasons": r.get("rejection_reasons")}
+                for r in (
+                    {
+                        (r.get("rejection_reasons") or ["Constraint"])[0].split(":")[0]: r
+                        for r in cands
+                    }.values()
+                )
+            ][:3] if cands else []
+        )(rejected_candidates),
         "applied_weights": scoring_engine.weights
     }
 

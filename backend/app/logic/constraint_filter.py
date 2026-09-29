@@ -70,13 +70,14 @@ class ConstraintFilter:
 
             # 5. Preferred Package Form filter (if user selected specific non-Any preference)
             if preferred_package_type not in ["any", "", "all", "none"]:
+                req_title = preferred_package_type.capitalize()
                 # Check if package type matches user selection
                 if preferred_package_type in ["rigid", "bottle", "can", "jar", "box", "tub", "tray", "punnet"]:
                     if not any(k in pkg_type or k in mat for k in ["rigid", "bottle", "can", "jar", "box", "tub", "tin", "tray", "punnet", "crate"]):
-                        reasons_rejected.append(f"Format Mismatch: User specified '{preferred_package_type}' but candidate format is flexible.")
+                        reasons_rejected.append(f"Format Incompatibility: Candidate format is Flexible, which does not satisfy the specified {req_title} packaging requirement.")
                 elif preferred_package_type in ["flexible", "pouch", "bag", "wrap"]:
                     if not any(k in pkg_type or k in mat for k in ["flexible", "pouch", "bag", "wrap", "film", "sachet", "liner", "sacking", "net", "mesh"]):
-                        reasons_rejected.append(f"Format Mismatch: User specified '{preferred_package_type}' but candidate format is rigid.")
+                        reasons_rejected.append(f"Format Incompatibility: Candidate format is Rigid, which does not satisfy the specified {req_title} packaging requirement.")
 
             # 6. Strict Sustainability Constraint
             if "strict" in sustainability_priority or "zero-plastic" in sustainability_priority:

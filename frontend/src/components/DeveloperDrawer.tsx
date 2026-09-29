@@ -120,13 +120,32 @@ export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose })
           )}
 
           {debugInfo?.rejected_sample && debugInfo.rejected_sample.length > 0 && (
-            <div className="mt-2 p-2.5 rounded-lg bg-rose-50/60 border border-rose-200/80 text-[11px] space-y-1">
-              <span className="font-semibold text-rose-900 block">Sample Rejection Reasons:</span>
-              {debugInfo.rejected_sample.map((rej, i) => (
-                <div key={i} className="text-rose-800 text-[10px]">
-                  • <strong>{rej.material}</strong>: {rej.rejection_reasons?.[0]}
-                </div>
-              ))}
+            <div className="mt-3 p-3 rounded-xl bg-rose-50/70 border border-rose-200/90 text-xs space-y-2">
+              <div className="flex items-center justify-between pb-1 border-b border-rose-200/60">
+                <span className="font-bold text-rose-950 text-xs">Sample Rejection Reasons</span>
+                <span className="text-[10px] font-semibold text-rose-700 bg-rose-100 px-1.5 py-0.5 rounded">
+                  Safety & Compatibility Audit
+                </span>
+              </div>
+              <div className="space-y-1.5">
+                {debugInfo.rejected_sample.map((rej, i) => {
+                  const rawReason = rej.rejection_reasons?.[0] || 'Constraint violation';
+                  // Clean up any unformatted raw strings
+                  const cleanedReason = rawReason.replace(
+                    /Format Mismatch: User specified '([^']+)' but candidate format is ([a-z]+)\.?/i,
+                    (_m, p1, p2) => `Format Incompatibility: Candidate format is ${p2.charAt(0).toUpperCase() + p2.slice(1)}, conflicting with specified ${p1.charAt(0).toUpperCase() + p1.slice(1)} format.`
+                  );
+                  return (
+                    <div key={i} className="text-rose-900 text-[11px] leading-relaxed flex items-start gap-1.5">
+                      <span className="text-rose-400 font-bold shrink-0 mt-0.5">•</span>
+                      <div>
+                        <strong className="text-rose-950 font-semibold">{rej.material}</strong>:
+                        <span className="text-rose-800 ml-1">{cleanedReason}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
