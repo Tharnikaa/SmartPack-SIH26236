@@ -22,6 +22,9 @@ export const ComparisonModal: React.FC<Props> = ({ recommendations, onClose }) =
   const topCandidates = recommendations.slice(0, 3);
 
   const getVal = (val: any) => {
+    if (React.isValidElement(val)) {
+      return val;
+    }
     if (
       val === null ||
       val === undefined ||
@@ -201,24 +204,24 @@ export const ComparisonModal: React.FC<Props> = ({ recommendations, onClose }) =
         </div>
 
         {/* Modal Body - Table with Sticky Header */}
-        <div className="overflow-y-auto overflow-x-auto flex-1 p-4 sm:p-6">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead className="sticky top-0 z-10 bg-slate-50/95 backdrop-blur-xs">
-              <tr className="border-b-2 border-slate-200">
-                <th className="py-3.5 px-4 font-semibold text-slate-700 w-1/4">
+        <div className="overflow-y-auto overflow-x-auto flex-1 bg-white">
+          <table className="w-full text-left text-xs border-separate border-spacing-0 min-w-[720px]">
+            <thead className="sticky top-0 z-20 shadow-xs">
+              <tr>
+                <th className="sticky top-0 z-20 py-3.5 px-5 sm:px-6 font-semibold text-slate-800 bg-slate-100 border-b-2 border-slate-200 w-1/4">
                   Property Specification
                 </th>
                 {topCandidates.map((r, i) => (
                   <th
                     key={i}
-                    className={`py-3.5 px-4 font-bold text-slate-900 w-1/4 ${
-                      i === 0 ? 'bg-violet-50/80 text-violet-950' : 'bg-slate-50/80'
+                    className={`sticky top-0 z-20 py-3.5 px-5 sm:px-6 font-bold w-1/4 border-b-2 border-slate-200 ${
+                      i === 0 ? 'bg-violet-100 text-violet-950' : 'bg-slate-100 text-slate-900'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-1">
                       <span className="truncate">Option #{r.rank}</span>
                       {i === 0 ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-violet-600 text-white px-2 py-0.5 rounded-full shrink-0">
+                        <span className="inline-flex items-center gap-1 text-[10px] font-semibold bg-violet-600 text-white px-2 py-0.5 rounded-full shrink-0 shadow-xs">
                           <Award className="w-3 h-3" />
                           #1 Primary
                         </span>
@@ -232,21 +235,21 @@ export const ComparisonModal: React.FC<Props> = ({ recommendations, onClose }) =
                 ))}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody>
               {rows.map((row, idx) => (
                 <tr
                   key={idx}
-                  className={`hover:bg-slate-50/70 transition-colors ${
+                  className={`hover:bg-slate-50/80 transition-colors ${
                     row.isFinal ? 'bg-emerald-50/50 font-bold' : ''
                   }`}
                 >
-                  <td className="py-3 px-4 font-semibold text-slate-600 bg-slate-50/40">
+                  <td className="py-3 px-5 sm:px-6 font-semibold text-slate-600 bg-slate-50/70 border-b border-slate-100">
                     {row.label}
                   </td>
                   {row.values.map((v, cIdx) => (
                     <td
                       key={cIdx}
-                      className={`py-3 px-4 ${
+                      className={`py-3 px-5 sm:px-6 border-b border-slate-100 ${
                         cIdx === 0 ? 'bg-violet-50/20' : ''
                       } ${row.isFinal ? 'text-emerald-900 font-extrabold text-sm' : 'text-slate-800'}`}
                     >

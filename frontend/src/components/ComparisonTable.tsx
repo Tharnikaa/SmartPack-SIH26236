@@ -13,6 +13,9 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
   const top3 = recommendations.slice(0, 3);
 
   const getVal = (val: any) => {
+    if (React.isValidElement(val)) {
+      return val;
+    }
     if (
       val === null ||
       val === undefined ||
