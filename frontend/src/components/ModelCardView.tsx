@@ -67,7 +67,7 @@ export const ModelCardView: React.FC = () => {
         {activeDoc === 'model_card' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-100">
-              <h2 className="text-lg font-bold text-slate-900 m-0">SmartPack Hybrid Suitability Model</h2>
+              <h2 className="text-lg font-bold text-slate-900 m-0">Wrap Up! Hybrid Suitability Model</h2>
               <OriginBadge origin="ML PREDICTION" />
             </div>
 

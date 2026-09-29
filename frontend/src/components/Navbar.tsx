@@ -14,12 +14,14 @@ export const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, devMode, setD
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
         {/* Brand */}
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => setActiveTab('analysis')}>
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white shadow-sm shadow-brand-500/20">
-            <Package className="w-5 h-5" />
-          </div>
+          <img 
+            src="/wrap_up_logo.png" 
+            alt="Wrap Up! Logo" 
+            className="w-10 h-10 object-contain rounded-xl shadow-xs" 
+          />
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-bold text-lg tracking-tight text-slate-900">SmartPack</span>
+              <span className="font-black text-xl tracking-tight bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Wrap Up!</span>
               <span className="text-[10px] uppercase font-mono font-semibold px-2 py-0.5 rounded bg-brand-100 text-brand-700 border border-brand-200">
                 SIH 26236
               </span>

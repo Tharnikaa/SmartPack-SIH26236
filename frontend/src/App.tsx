@@ -126,34 +126,43 @@ export function App() {
       {activeTab === 'analysis' && (
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1 w-full">
           {/* Hero / Header Section (Screen 1) */}
-          <div className="mb-8 bg-gradient-to-r from-brand-50 via-white to-slate-50 border border-brand-200/50 rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
-            <div className="max-w-3xl">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-100/80 border border-brand-200 text-brand-800 text-xs font-semibold uppercase tracking-wider mb-4">
-                <Sparkles className="w-3.5 h-3.5 text-brand-600" />
-                SIH Problem Statement 26236 Working Prototype
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
-                Smart Food-Packaging Recommendation System
-              </h1>
-              <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
-                Translate food composition and storage shelf-life requirements into scientific packaging specifications.
-                Screen verified candidates from FSSAI Schedule IV & BIS standards, filter incompatible materials via hard constraints,
-                and rank with a transparent hybrid ML pipeline.
-              </p>
+          <div className="mb-8 bg-gradient-to-r from-violet-50/70 via-white to-indigo-50/50 border border-violet-200/60 rounded-3xl p-6 sm:p-10 shadow-sm relative overflow-hidden">
+            <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="max-w-2xl">
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-100/80 border border-violet-200 text-violet-800 text-xs font-semibold uppercase tracking-wider mb-4">
+                  <Sparkles className="w-3.5 h-3.5 text-violet-600" />
+                  SIH Problem Statement 26236 Working Prototype
+                </div>
+                <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight">
+                  <span className="bg-gradient-to-r from-violet-600 to-indigo-600 bg-clip-text text-transparent">Wrap Up!</span> — Smart Food-Packaging Recommendation
+                </h1>
+                <p className="text-slate-600 text-sm sm:text-base mt-3 leading-relaxed">
+                  Translate food composition and storage shelf-life requirements into scientific packaging specifications.
+                  Screen verified candidates from FSSAI Schedule IV & BIS standards, filter incompatible materials via hard constraints,
+                  and rank with a transparent hybrid ML pipeline.
+                </p>
 
-              <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> ICMR IFCT 2017 Nutrients
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> FSSAI Schedule IV Lookup
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> BIS IS Packaging Specs
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Zero Fabricated Values
-                </span>
+                <div className="mt-6 flex flex-wrap items-center gap-4 text-xs text-slate-500 font-medium">
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> ICMR IFCT 2017 Nutrients
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> FSSAI Schedule IV Lookup
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> BIS IS Packaging Specs
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Zero Fabricated Values
+                  </span>
+                </div>
+              </div>
+              <div className="hidden md:flex flex-shrink-0 items-center justify-center p-2">
+                <img 
+                  src="/wrap_up_logo.png" 
+                  alt="Wrap Up! Logo" 
+                  className="w-36 h-36 object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300"
+                />
               </div>
             </div>
           </div>
@@ -283,8 +292,11 @@ export function App() {
 
       {/* Footer */}
       <footer className="mt-auto border-t border-slate-200 bg-white py-6 text-center text-xs text-slate-500">
-        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span>SmartPack — SIH Problem Statement 26236 Production-Style Prototype</span>
+        <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <img src="/wrap_up_logo.png" alt="Wrap Up! Logo" className="w-5 h-5 object-contain rounded" />
+            <span className="font-semibold text-slate-700">Wrap Up! — SIH Problem Statement 26236 Production-Style Prototype</span>
+          </div>
           <span className="font-mono text-[11px] text-slate-400">
             Source Data: ICMR IFCT 2017 • FSSAI Schedule IV • BIS Packaging Standards
           </span>
