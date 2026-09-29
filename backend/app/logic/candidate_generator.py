@@ -71,7 +71,7 @@ class CandidateGenerator:
             match = df[df["material_id"] == "REF-15"]
             if not match.empty:
                 return match.iloc[0]
-        if "pla" in m:
+        if re.search(r'\bpla\b', m) or "polylactic" in m:
             match = df[df["material_id"] == "REF-14"]
             if not match.empty:
                 return match.iloc[0]
@@ -230,7 +230,16 @@ class CandidateGenerator:
 
         # 2. Category normalization for FSSAI Schedule IV lookup
         search_terms = []
-        if any(k in cat_lower for k in ['root', 'tuber']):
+        is_processed_snack = (
+            any(k in name_lower for k in ['chip', 'snack', 'fried', 'crisp', 'namkeen', 'savoury', 'biscuit', 'wafer', 'cracker']) or
+            any(k in cat_lower for k in ['snack', 'confectionery']) or
+            (cat_lower == 'ready-to-eat meal' and any(k in name_lower for k in ['chip', 'crisp', 'snack', 'potato']))
+        )
+
+        if is_processed_snack:
+            # Fried / dry snacks and ready-to-eat savoury items span RTE, lipid protection, and cereal/confectionery packaging
+            search_terms = ['Ready-to-eat meal', 'Fats, oils and fat emulsions', 'Cereals and cereal products', 'Sweets and Confectionery']
+        elif any(k in cat_lower for k in ['root', 'tuber']):
             search_terms = ['fruit & vegetable', 'vegetable']
         elif 'fruit' in cat_lower:
             search_terms = ['fruit']
@@ -241,15 +250,16 @@ class CandidateGenerator:
 
         for term in search_terms:
             mask = rec_df['food_category'].astype(str).str.contains(re.escape(term), case=False, na=False)
-            # Never pull beverage categories when searching for solid fruit/vegetables
-            if any(k in cat_lower for k in ['fruit', 'vegetable', 'root', 'tuber', 'produce']):
+            # Never pull beverage categories when searching for solid food
+            if not any(k in cat_lower for k in ['beverage', 'drink', 'juice']):
                 mask = mask & (~rec_df['food_category'].astype(str).str.contains('Beverage', case=False, na=False))
             sub = rec_df[mask]
             if not sub.empty:
                 matched_rows = pd.concat([matched_rows, sub])
 
-        # 3. For bulk tubers / root crops (like Potato) or foodgrains, also include breathable bulk storage from rec_df
-        if any(k in cat_lower or k in name_lower for k in ['potato', 'tuber', 'root', 'onion']):
+        # 3. For bulk tubers / root crops (like raw potato, onion, yam) or foodgrains:
+        # ONLY add breathable bulk storage if it is fresh raw produce, NOT processed chips or snacks
+        if not is_processed_snack and any(k in cat_lower or k in name_lower for k in ['potato', 'tuber', 'root', 'onion']):
             bulk_mask = rec_df['recommended_packaging_material'].astype(str).str.contains('Jute|Corrugated', case=False, na=False)
             matched_rows = pd.concat([matched_rows, rec_df[bulk_mask]])
 

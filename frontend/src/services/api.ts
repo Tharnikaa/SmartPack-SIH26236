@@ -1,6 +1,6 @@
 import { AnalyzeRequest, AnalyzeResponse, MLStatusResponse } from '../types';
 
-const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8000/api';
+export const API_BASE = (import.meta as any).env?.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
 export async function analyzePackaging(payload: AnalyzeRequest): Promise<AnalyzeResponse> {
   const res = await fetch(`${API_BASE}/analyze`, {

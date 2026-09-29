@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { fetchPackagingMaterials } from '../services/api';
-import { Database, Search, Shield, Wind, Droplets, Leaf, BookOpen } from 'lucide-react';
+import { Search, Shield, Wind, Leaf, BookOpen } from 'lucide-react';
 import { OriginBadge } from './OriginBadge';
 
 export const PackagingCatalogView: React.FC = () => {

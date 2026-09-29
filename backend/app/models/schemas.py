@@ -24,8 +24,9 @@ class AnalyzeRequest(BaseModel):
     preferred_package_type: str = Field(default="Any", description="Any, Flexible, Rigid, Bottle, Pouch, Box, Can")
 
 class ScoringWeightsUpdate(BaseModel):
-    barrier_score: float = 0.2857
-    compatibility_score: float = 0.2143
-    shelf_life_score: float = 0.2143
-    mechanical_score: float = 0.1429
-    sustainability_score: float = 0.1428
+    ml_score: float = 0.25
+    barrier_score: float = 0.25
+    compatibility_score: float = 0.15
+    shelf_life_score: float = 0.15
+    mechanical_score: float = 0.10
+    sustainability_score: float = 0.10

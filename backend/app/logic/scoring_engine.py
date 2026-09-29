@@ -90,23 +90,49 @@ class ScoringEngine:
         gas_req = str(reqs.get("map_gas_requirement", {}).get("level", "")).lower()
         is_breathable_req = "permeable" in gas_req or "breathable" in gas_req
 
+        o2_req_score = targets.get("o2_score", 0.5)
+        h2o_req_score = targets.get("h2o_score", 0.5)
+        fat_oil_high = str(user_input.get("fat_oil_sensitivity", "")).lower() == "high"
+        moisture_low = float(user_input.get("moisture_level", 50.0) or 50.0) <= 5.0
+        is_lipid_or_dry_sensitive = fat_oil_high or moisture_low or o2_req_score >= 0.70 or h2o_req_score >= 0.70
+
         is_rigid_impermeable = (
-            any(k in mat_lower for k in ["glass", "tinplate", "tin can", "steel can", "tfs"])
+            any(k in mat_lower for k in ["glass", "tinplate", "tin can", "steel can", "tfs", "metal container"])
             and not any(k in mat_lower for k in ["pouch", "laminate", "film"])
         )
+        is_foil_barrier = any(k in mat_lower for k in ["aluminium foil", "aluminum foil", "al foil", "foil-based", "foil laminate"])
+
+        has_numeric_barrier = (otr is not None) or (wvtr is not None)
+        barrier_classification = "Standard"
 
         if is_breathable_req:
             # Fresh respiring produce requires controlled gas exchange / breathability
             if any(k in mat_lower or k in pkg_type for k in ["punnet", "overwrap", "tray with overwrap", "permeable", "perforated", "box", "cfb", "jute"]):
                 barrier_score = 0.95
+                barrier_classification = "Breathable / Ventilated (Produce Suitable)"
             elif "pouch" in mat_lower or "film" in mat_lower:
                 barrier_score = 0.85
+                barrier_classification = "Permeable Film"
             else:
                 barrier_score = 0.65
-        elif is_rigid_impermeable or (otr == 0.0 and (wvtr is not None and wvtr <= 0.3)):
-            # Hermetic glass, metal, or foil composite
+                barrier_classification = "Moderate Ventilation"
+        elif is_rigid_impermeable or is_foil_barrier or (otr == 0.0 and (wvtr is not None and wvtr <= 0.3)):
+            # Hermetic glass, metal, or aluminium foil composite
             barrier_score = 0.98
-        else:
+            barrier_classification = "High (Hermetic / Foil Composite)"
+        elif any(k in mat_lower for k in ["jute", "sacking", "hessian", "burlap", "mesh"]):
+            # Explicitly porous textile
+            barrier_score = 0.08 if is_lipid_or_dry_sensitive else 0.40
+            barrier_classification = "Low (Porous Textile - Inadequate Barrier)"
+        elif "except top" in mat_lower or ("cfb" in mat_lower and "laminate" not in mat_lower and "foil" not in mat_lower):
+            # Open-top or unsealed fibreboard
+            barrier_score = 0.12 if is_lipid_or_dry_sensitive else 0.45
+            barrier_classification = "Low (Unsealed / Porous Fibreboard)"
+        elif "paper" in mat_lower and not any(k in mat_lower for k in ["laminate", "foil", "coated", "wax"]):
+            # Uncoated porous paper
+            barrier_score = 0.10 if is_lipid_or_dry_sensitive else 0.35
+            barrier_classification = "Low (Uncoated Paper - Inadequate Barrier)"
+        elif has_numeric_barrier:
             otr_score = None
             if otr is not None:
                 try:
@@ -118,9 +144,9 @@ class ScoringEngine:
                     elif o_num <= target_otr * 5.0:
                         otr_score = 0.60
                     elif o_num <= target_otr * 20.0:
-                        otr_score = 0.40
+                        otr_score = 0.35
                     else:
-                        otr_score = 0.25
+                        otr_score = 0.10 if is_lipid_or_dry_sensitive else 0.25
                 except (ValueError, TypeError):
                     otr_score = None
 
@@ -135,30 +161,40 @@ class ScoringEngine:
                     elif w_num <= target_wvtr * 5.0:
                         wvtr_score = 0.60
                     elif w_num <= target_wvtr * 20.0:
-                        wvtr_score = 0.40
+                        wvtr_score = 0.35
                     else:
-                        wvtr_score = 0.25
+                        wvtr_score = 0.10 if is_lipid_or_dry_sensitive else 0.25
                 except (ValueError, TypeError):
                     wvtr_score = None
 
             if otr_score is not None and wvtr_score is not None:
-                o2_req_score = targets.get("o2_score", 0.5)
-                h2o_req_score = targets.get("h2o_score", 0.5)
                 total_req = o2_req_score + h2o_req_score
-                if total_req > 0:
-                    barrier_score = (o2_req_score * otr_score + h2o_req_score * wvtr_score) / total_req
-                else:
-                    barrier_score = 0.5 * otr_score + 0.5 * wvtr_score
+                barrier_score = (o2_req_score * otr_score + h2o_req_score * wvtr_score) / total_req if total_req > 0 else (0.5 * otr_score + 0.5 * wvtr_score)
             elif otr_score is not None:
                 barrier_score = otr_score
             elif wvtr_score is not None:
                 barrier_score = wvtr_score
             else:
-                # Non-numeric fallback (e.g. uncoated paper)
-                if "porous" in str(barrier.get("test_condition", "")).lower() or ("paper" in mat_lower and "coated" not in mat_lower and "laminate" not in mat_lower):
-                    barrier_score = 0.30
-                else:
-                    barrier_score = 0.55
+                barrier_score = 0.55
+
+            barrier_classification = "High (Numerical Verified)" if barrier_score >= 0.80 else ("Moderate" if barrier_score >= 0.55 else "Low")
+        else:
+            # Missing numerical OTR/WVTR in DB — evaluate validated structural classification without fabricating numbers
+            if any(k in mat_lower for k in ["multilayer", "laminate", "composite", "retort", "co-extruded", "zipper pouch"]):
+                # Regulated multi-layer flexible barrier pouch (e.g. IS 9845)
+                barrier_score = 0.88
+                barrier_classification = "High (Validated Multilayer Barrier Structure)"
+            elif any(k in mat_lower for k in ["coated", "wax"]):
+                barrier_score = 0.65
+                barrier_classification = "Moderate (Coated Paper/Board)"
+            elif any(k in mat_lower for k in ["plastic rigid", "pet bottle", "hdpe jar", "thermoform container"]):
+                barrier_score = 0.72
+                barrier_classification = "Moderate (Rigid Polymer)"
+            else:
+                # Missing OTR/WVTR and NO validated barrier classification exists
+                # Marked as conditional / insufficient technical evidence rather than assuming suitability
+                barrier_score = 0.35
+                barrier_classification = "Conditional / Insufficient Technical Evidence"
 
         # -------------------------------------------------------------
         # 2. Compatibility Score (FSSAI Schedule IV endorsement & chemical inertness)
@@ -167,23 +203,22 @@ class ScoringEngine:
         compat_score = 0.90
         if is_rigid_impermeable and "glass" in mat_lower:
             compat_score = 1.0  # Chemically inert
-        elif any(k in mat_lower for k in ["retort", "aseptic", "lacquered"]):
+        elif any(k in mat_lower for k in ["retort", "aseptic", "lacquered", "foil"]):
             compat_score = 0.95
         elif "plastic" in mat_lower and "oil" in str(user_input.get("food_category", "")).lower():
             compat_score = 0.85
 
         # Light sensitivity & photo-degradation protection
         light_req = str((reqs.get("light_requirement") or {}).get("level", "")).lower()
-        if "mandatory opaque" in light_req or "light barrier" in light_req:
-            is_opaque = any(k in mat_lower for k in ["jute", "sacking", "cfb", "corrugated", "board", "paper", "foil", "metal", "kraft", "box"])
+        if "mandatory opaque" in light_req or "light barrier" in light_req or is_lipid_or_dry_sensitive:
+            is_opaque = any(k in mat_lower for k in ["jute", "sacking", "cfb", "corrugated", "board", "paper", "foil", "metal", "kraft", "box", "tin"])
             if is_opaque:
                 compat_score = max(compat_score, 0.95)
-            elif any(k in mat_lower for k in ["punnet", "transparent", "tray"]) and not any(k in mat_lower for k in ["cfb", "box", "jute"]):
-                # Clear transparent packaging without light barrier induces solanine greening in tubers
-                compat_score = min(compat_score, 0.70)
+            elif any(k in mat_lower for k in ["punnet", "transparent", "tray", "film twist"]) and not any(k in mat_lower for k in ["cfb", "box", "foil", "tin"]):
+                compat_score = min(compat_score, 0.75)
 
         # -------------------------------------------------------------
-        # 3. Shelf-Life Score (Comparing expected shelf life against requested days)
+        # 3. Shelf-Life Score & Benchmark Validation Accounting
         # -------------------------------------------------------------
         requested_days = int(user_input.get("desired_shelf_life_days", 90) or 90)
         expected_sl = str(candidate.get("expected_shelf_life", "")).lower()
@@ -202,18 +237,32 @@ class ScoringEngine:
         elif "day" in expected_sl:
             expected_days = 7
 
+        validation_status = "UNKNOWN"
+        validation_note = ""
+
         if expected_days is not None:
             if expected_days >= requested_days:
                 shelf_life_score = 0.95
-            elif expected_days >= requested_days * 0.7:
-                shelf_life_score = 0.85
-            elif expected_days >= requested_days * 0.4:
-                shelf_life_score = 0.65
+                validation_status = "FULLY_VALIDATED"
+                validation_note = f"Target: {requested_days} days | Validated benchmark: {candidate.get('expected_shelf_life')} | Fully covers target shelf life."
             else:
-                shelf_life_score = 0.45
+                # Target shelf life exceeds validated benchmark (e.g. 180 days target vs 3 months benchmark)
+                ratio = expected_days / requested_days  # e.g. 90 / 180 = 0.50
+                # Scoring engine explicitly accounts for this mismatch
+                shelf_life_score = max(0.35, round(0.90 * (ratio ** 0.75), 3))
+                validation_status = "ADDITIONAL_VALIDATION_REQUIRED"
+                validation_note = f"Target: {requested_days} days | Validated benchmark: {candidate.get('expected_shelf_life')} | Additional validation required for target shelf life."
         else:
-            # Fallback to barrier fit if expected shelf life is not specified in DB
-            shelf_life_score = 0.80 if barrier_score >= 0.75 else 0.60
+            # Expected shelf life not documented in source DB
+            if barrier_score >= 0.85:
+                # High-barrier structure provides physical protection, but lacks empirical benchmark
+                shelf_life_score = 0.65
+                validation_status = "THEORETICAL_BARRIER_PROTECTION"
+                validation_note = f"Target: {requested_days} days | Validated benchmark: Not available in source database | Empirical validation recommended."
+            else:
+                shelf_life_score = 0.40
+                validation_status = "INSUFFICIENT_EVIDENCE"
+                validation_note = f"Target: {requested_days} days | Validated benchmark: Not available in source database | Additional validation required for target shelf life."
 
         # -------------------------------------------------------------
         # 4. Mechanical Protection Score (Specs from mechanical_properties)
@@ -283,6 +332,21 @@ class ScoringEngine:
             w.get("sustainability_score", 0.10) * sustainability_score
         )
 
+        # -------------------------------------------------------------
+        # CRITICAL BARRIER DEFECT PENALTY:
+        # A candidate with explicitly LOW oxygen/moisture barrier must not receive a high recommendation
+        # merely because of generic compatibility, sustainability, or mechanical properties.
+        # -------------------------------------------------------------
+        barrier_defect_penalty = 1.0
+        if is_lipid_or_dry_sensitive:
+            if barrier_score <= 0.20:
+                # Inadequate oxygen/moisture barrier directly causes rancidity and sogginess
+                barrier_defect_penalty = 0.30
+            elif barrier_score <= 0.40:
+                # Marginal / insufficient technical evidence
+                barrier_defect_penalty = 0.65
+
+        final_composite = final_composite * barrier_defect_penalty
         final_suitability_score = round(final_composite * 100, 1)
 
         return {
@@ -297,7 +361,11 @@ class ScoringEngine:
                 "sustainability_score": round(sustainability_score, 3)
             },
             "applied_weights": w,
-            "ml_details": ml_res
+            "ml_details": ml_res,
+            "barrier_classification": barrier_classification,
+            "validation_status": validation_status,
+            "validation_note": validation_note,
+            "additional_validation_required": (expected_days is not None and expected_days < requested_days) or (expected_days is None and requested_days > 90)
         }
 
 scoring_engine = ScoringEngine()

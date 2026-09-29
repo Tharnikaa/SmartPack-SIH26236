@@ -11,8 +11,7 @@ import { ModelCardView } from './components/ModelCardView';
 import { AnalyzeRequest, AnalyzeResponse, Recommendation } from './types';
 import { analyzePackaging } from './services/api';
 import { 
-  Sparkles, ShieldAlert, Award, ArrowDownCircle, CheckCircle2, 
-  HelpCircle, AlertTriangle 
+  Sparkles, ShieldAlert, Award, CheckCircle2, AlertTriangle 
 } from 'lucide-react';
 
 const defaultForm: AnalyzeRequest = {
@@ -31,6 +30,40 @@ const defaultForm: AnalyzeRequest = {
   sustainability_priority: '',
   preferred_package_type: ''
 };
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: any }> {
+  constructor(props: { children: React.ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("SmartPack ErrorBoundary caught error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-6 max-w-md shadow-2xl border border-slate-200 text-center space-y-4">
+            <h3 className="text-base font-bold text-slate-900">Evaluation Notice</h3>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              Unable to render detailed evaluation modal for this item.
+            </p>
+            <button
+              onClick={() => this.setState({ hasError: false })}
+              className="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-xs font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 export function App() {
   const [activeTab, setActiveTab] = useState<'analysis' | 'catalog' | 'modelcard'>('analysis');
@@ -216,10 +249,16 @@ export function App() {
       )}
 
       {/* Screen 6: "Why This Packaging?" Modal */}
-      <WhyPackagingModal
-        recommendation={selectedRec}
-        onClose={() => setSelectedRec(null)}
-      />
+      {selectedRec && (
+        <ErrorBoundary>
+          <WhyPackagingModal
+            recommendation={selectedRec}
+            userInput={formData}
+            requirements={results?.requirements}
+            onClose={() => setSelectedRec(null)}
+          />
+        </ErrorBoundary>
+      )}
 
       {/* Screen 7: Developer Telemetry Drawer */}
       <DeveloperDrawer

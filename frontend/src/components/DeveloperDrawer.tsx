@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { DebugInfo, MLStatusResponse } from '../types';
 import { fetchMLStatus, triggerMLTrain, fetchWeights, updateWeights } from '../services/api';
-import { Terminal, RefreshCw, Sliders, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Terminal, RefreshCw, Sliders, CheckCircle, X } from 'lucide-react';
 
 interface Props {
   debugInfo?: DebugInfo;
@@ -15,12 +15,6 @@ export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose })
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      loadData();
-    }
-  }, [isOpen]);
-
   const loadData = async () => {
     try {
       const [mStatus, wData] = await Promise.all([fetchMLStatus(), fetchWeights()]);
@@ -30,6 +24,12 @@ export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose })
       console.error('Failed to load dev data:', err);
     }
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      loadData();
+    }
+  }, [isOpen]);
 
   const handleRetrain = async () => {
     setLoading(true);

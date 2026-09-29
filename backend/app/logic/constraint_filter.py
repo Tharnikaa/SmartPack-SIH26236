@@ -58,10 +58,15 @@ class ConstraintFilter:
                 reasons_rejected.append("Chemical Incompatibility: Unlacquered plain tinplate susceptible to heavy acid etching and tin dissolution (IS 5837 requires internal lacquering).")
 
             # 4. MAP Hard Requirement
-            # If user demands MAP, porous or unsealable packaging must be rejected
+            # If user demands MAP, porous, open-weave, or unsealed packaging must be rejected
             if map_required:
-                if map_suitability == "No" or ("paper" in mat and "laminate" not in mat and "coated" not in mat and "cfb" not in mat):
-                    reasons_rejected.append("MAP Incompatibility: Product requires gas barrier for modified atmosphere; non-laminated paper/porous material cannot retain CO2/N2 gas blend.")
+                is_porous_or_unsealed = (
+                    any(k in mat for k in ["jute", "sacking", "hessian", "burlap", "mesh", "net"]) or
+                    ("box" in mat and "except top" in mat) or
+                    ("paper" in mat and not any(k in mat for k in ["laminate", "coated", "foil", "aluminium", "aluminum"]))
+                )
+                if is_porous_or_unsealed or str(map_suitability).lower().startswith("no"):
+                    reasons_rejected.append("MAP Incompatibility: Product requires gas barrier for modified atmosphere (MAP); porous or unsealed container cannot retain protective N2/CO2 gas blend.")
 
             # 5. Preferred Package Form filter (if user selected specific non-Any preference)
             if preferred_package_type not in ["any", "", "all", "none"]:
@@ -102,6 +107,13 @@ class ConstraintFilter:
                 # Rigid plastic jars with screw caps lack ventilation for fresh produce
                 elif any(k in mat for k in ["plastic rigid jar", "plastic jar"]):
                     reasons_rejected.append("Format Incompatibility: Rigid plastic jars with screw caps are designed for dry foods, confectionery, or processed pastes/spreads, lacking the ventilation needed for fresh produce.")
+
+            # 8. Snack / Dry Crisp Physical Dispensing Interlock
+            # Planar crispy snacks (chips, crisps, wafers, crackers) cannot physically fit or dispense through narrow-neck bottle openings
+            is_dry_crisp = any(k in food_name for k in ["chip", "crisp", "wafer", "cracker"])
+            if is_dry_crisp:
+                if "bottle" in mat or "bottle" in pkg_type or "wooden cask" in mat:
+                    reasons_rejected.append("Physical Format Incompatibility: Narrow-neck bottle packaging cannot accommodate or dispense brittle, planar crispy snack solids (bottles are designed for flowable liquids, syrups, and beverages).")
 
             if reasons_rejected:
                 rejected.append({

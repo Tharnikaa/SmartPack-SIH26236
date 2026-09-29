@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Database, ShieldAlert, Cpu, CheckCircle } from 'lucide-react';
+import { FileText, Database, ShieldAlert, Cpu } from 'lucide-react';
 import { OriginBadge } from './OriginBadge';
 
 export const ModelCardView: React.FC = () => {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Recommendation } from '../types';
 import { OriginBadge } from './OriginBadge';
-import { ArrowLeftRight, Check, X } from 'lucide-react';
+import { ArrowLeftRight } from 'lucide-react';
 
 interface Props {
   recommendations: Recommendation[];
@@ -50,6 +50,20 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
       values: top3.map((r) => r.packaging_type)
     },
     {
+      label: 'Barrier Classification',
+      values: top3.map((r) => (
+        <span key={r.rank} className={`font-semibold ${
+          r.barrier_classification?.includes('Conditional')
+            ? 'text-amber-700 bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200'
+            : r.barrier_classification?.includes('High')
+            ? 'text-emerald-700'
+            : 'text-slate-700'
+        }`}>
+          {r.barrier_classification || 'Standard Barrier'}
+        </span>
+      ))
+    },
+    {
       label: 'OTR (Oxygen Transmission)',
       values: top3.map((r) =>
         r.barrier_properties.otr !== null && r.barrier_properties.otr !== undefined
@@ -90,13 +104,38 @@ export const ComparisonTable: React.FC<Props> = ({ recommendations }) => {
       values: top3.map((r) => r.map_suitability || 'Not available')
     },
     {
-      label: 'Shelf-Life Suitability',
+      label: 'Validated Benchmark (Source DB)',
       values: top3.map((r) => {
         const exp = r.shelf_life_suitability?.expected_shelf_life_db;
         const hasValidExp = exp && !['nan', 'none', 'not specified', 'data unavailable', 'not available', ''].includes(String(exp).trim().toLowerCase());
-        return hasValidExp
-          ? `${r.shelf_life_suitability.estimated_protection_level} Protection (${exp})`
-          : `${r.shelf_life_suitability.estimated_protection_level} Protection (Not available)`;
+        return hasValidExp ? exp : 'Not available in source database';
+      })
+    },
+    {
+      label: 'Shelf-Life Validation Status',
+      values: top3.map((r) => {
+        const sl = r.shelf_life_suitability;
+        if (sl?.additional_validation_required) {
+          return (
+            <div key={r.rank} className="flex flex-col gap-0.5 text-[11px] text-amber-800 bg-amber-50 p-1.5 rounded border border-amber-200">
+              <span className="font-bold text-[10px] uppercase tracking-wider text-amber-700">Additional validation required</span>
+              <span>Target: {sl.requested_days || 180} days</span>
+              <span>Validated benchmark: {sl.expected_shelf_life_db}</span>
+            </div>
+          );
+        }
+        if (sl?.validation_status === 'FULLY_VALIDATED') {
+          return (
+            <span key={r.rank} className="text-emerald-700 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+              Fully Validated ({sl.expected_shelf_life_db})
+            </span>
+          );
+        }
+        return (
+          <span key={r.rank} className="text-slate-600 font-medium">
+            {sl?.estimated_protection_level || 'Theoretical Barrier Fit'}
+          </span>
+        );
       })
     },
     {

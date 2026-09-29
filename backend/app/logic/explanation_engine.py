@@ -4,6 +4,25 @@ class ExplanationEngine:
     def __init__(self):
         pass
 
+    def _get_family(self, cand: Dict[str, Any]) -> str:
+        mat = str(cand.get("material", "")).lower()
+        pkg = str(cand.get("packaging_type", "")).lower()
+        if "glass" in mat:
+            return "glass"
+        if any(k in mat for k in ["carton", "composite container", "paperboard"]):
+            return "composite_or_carton"
+        if any(k in mat for k in ["tin", "aluminium can", "metal container", "tfs"]):
+            return "metal"
+        if any(k in mat for k in ["aseptic", "foil wrap", "aluminium-foil-based", "foil pouch"]):
+            return "foil_aseptic_or_wrap"
+        if any(k in mat for k in ["thermoform", "tray", "punnet", "tub"]):
+            return "thermoformed_tray"
+        if any(k in mat for k in ["pouch", "bag", "film", "wrapper"]):
+            return "flexible_pouch"
+        if any(k in mat for k in ["rigid jar", "rigid container"]):
+            return "rigid_plastic"
+        return mat[:20]
+
     def build_recommendations(
         self,
         ranked_candidates: List[Dict[str, Any]],
@@ -13,9 +32,29 @@ class ExplanationEngine:
         """
         Builds the Top 3 Recommendations with transparent explanations, origin labels,
         positive evidence points, scientific warnings, and documented limitations.
+        Diversifies options across distinct material families to avoid duplicate formats.
         """
         recommendations = []
-        top_3 = ranked_candidates[:3]
+        
+        # Select diversified top candidates from different packaging families
+        diverse_top = []
+        seen_families = set()
+        for cand in ranked_candidates:
+            fam = self._get_family(cand)
+            if fam not in seen_families:
+                seen_families.add(fam)
+                diverse_top.append(cand)
+                if len(diverse_top) == 3:
+                    break
+
+        if len(diverse_top) < 3:
+            for cand in ranked_candidates:
+                if cand not in diverse_top:
+                    diverse_top.append(cand)
+                    if len(diverse_top) == 3:
+                        break
+
+        top_3 = diverse_top
 
         rank_names = ["Recommended Packaging", "Alternative Packaging (Option 2)", "Alternative Packaging (Option 3)"]
 
@@ -57,11 +96,23 @@ class ExplanationEngine:
 
             # Formulate warnings / caveats
             warnings = []
+            validation_status = scoring_data.get("validation_status", "UNKNOWN")
+            validation_note = scoring_data.get("validation_note", "")
+            additional_validation_req = scoring_data.get("additional_validation_required", False)
+            barrier_class = scoring_data.get("barrier_classification", "Standard")
+
+            if validation_status == "ADDITIONAL_VALIDATION_REQUIRED":
+                warnings.append(f"Shelf-Life Benchmark Mismatch: Target shelf life is {user_input.get('desired_shelf_life_days', 90)} days, but validated source benchmark is {cand.get('expected_shelf_life')}. Additional empirical validation required for target shelf life.")
+            elif validation_status in ["THEORETICAL_BARRIER_PROTECTION", "INSUFFICIENT_EVIDENCE"]:
+                warnings.append(f"Unvalidated Shelf Life: Target shelf life is {user_input.get('desired_shelf_life_days', 90)} days, but no empirical benchmark is recorded in source database. Empirical shelf-life testing required.")
+
             if "mandatory opaque" in light_level and any(k in mat.lower() for k in ["punnet", "transparent", "tray"]):
-                warnings.append("Light Sensitivity Warning: Transparent packaging allows ambient light penetration; store in dark to prevent tuber greening.")
+                warnings.append("Light Sensitivity Warning: Transparent packaging allows ambient light penetration; store in dark to prevent oxidation/greening.")
 
             barrier = cand.get("barrier_properties", {})
-            if barrier.get("wvtr") is None and barrier.get("otr") is None:
+            if barrier_class == "Conditional / Insufficient Technical Evidence":
+                warnings.append("Insufficient Technical Evidence: OTR/WVTR are unmeasured in source databases and no validated barrier classification exists; barrier fit cannot be guaranteed without empirical testing.")
+            elif barrier.get("wvtr") is None and barrier.get("otr") is None:
                 warnings.append("Barrier Data Gap: Exact numerical OTR/WVTR are unmeasured in the primary database; barrier fit is evaluated via polymer class standards.")
             
             if cand.get("technical_data_coverage") == "Low technical-data coverage":
@@ -87,6 +138,17 @@ class ExplanationEngine:
             else:
                 clean_db_sl = str(raw_db_sl).strip()
 
+            coverage_text = cand.get("technical_data_coverage", "Medium technical-data coverage")
+            if barrier_class == "Conditional / Insufficient Technical Evidence":
+                coverage_text = "Conditional / Insufficient Technical Evidence"
+
+            protection_level_label = (
+                "Fully Validated" if validation_status == "FULLY_VALIDATED"
+                else ("Partially Validated (Target Exceeds Benchmark)" if validation_status == "ADDITIONAL_VALIDATION_REQUIRED"
+                else ("Theoretical Barrier Protection" if validation_status == "THEORETICAL_BARRIER_PROTECTION"
+                else "Unverified Shelf Life"))
+            )
+
             recommendations.append({
                 "rank": rank,
                 "rank_title": rank_title,
@@ -107,6 +169,7 @@ class ExplanationEngine:
                     "label": "DATABASE VALUE"
                 },
                 "barrier_properties": cand.get("barrier_properties", {}),
+                "barrier_classification": barrier_class,
                 "mechanical_properties": cand.get("mechanical_properties", {}),
                 "sealability": cand.get("sealability", "Standard heat-sealable flexible structure"),
                 "thickness_recommendation": cand.get("thickness_recommendation"),
@@ -114,11 +177,14 @@ class ExplanationEngine:
                 "shelf_life_suitability": {
                     "requested_days": user_input.get("desired_shelf_life_days", 90),
                     "expected_shelf_life_db": clean_db_sl,
-                    "estimated_protection_level": "High" if score_breakdown.get("shelf_life_score", 0) >= 0.8 else "Moderate",
-                    "label": "DATABASE VALUE (Expected) / DERIVED SCORE (Protection)"
+                    "validation_status": validation_status,
+                    "validation_note": validation_note,
+                    "additional_validation_required": additional_validation_req,
+                    "estimated_protection_level": protection_level_label,
+                    "label": "DATABASE VALUE (Benchmark) / DERIVED SCORE (Evaluation)"
                 },
                 "map_suitability": cand.get("map_suitability", "Conditional"),
-                "technical_data_coverage": cand.get("technical_data_coverage", "Medium technical-data coverage"),
+                "technical_data_coverage": coverage_text,
                 "technical_coverage_pct": cand.get("technical_coverage_pct", 60),
                 "evidence_points": evidence,
                 "contributing_factors": factors,

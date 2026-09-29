@@ -89,10 +89,14 @@ export interface Recommendation {
     concerns?: string | null;
     label: string;
   };
+  barrier_classification?: string;
   shelf_life_suitability: {
     requested_days: number;
     expected_shelf_life_db: string;
     estimated_protection_level: string;
+    validation_status?: string;
+    validation_note?: string;
+    additional_validation_required?: boolean;
     label: string;
   };
   map_suitability: string;
