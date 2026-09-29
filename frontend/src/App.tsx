@@ -288,6 +288,8 @@ export function App() {
         debugInfo={results?.debug}
         isOpen={devMode}
         onClose={() => setDevMode(false)}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
       />
 
       {/* Footer */}

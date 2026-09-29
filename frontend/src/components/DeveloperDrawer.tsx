@@ -7,9 +7,11 @@ interface Props {
   debugInfo?: DebugInfo;
   isOpen: boolean;
   onClose: () => void;
+  activeTab?: 'analysis' | 'catalog' | 'modelcard';
+  setActiveTab?: (tab: 'analysis' | 'catalog' | 'modelcard') => void;
 }
 
-export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose }) => {
+export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose, activeTab, setActiveTab }) => {
   const [mlStatus, setMlStatus] = useState<MLStatusResponse | null>(null);
   const [weights, setWeights] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
@@ -84,6 +86,47 @@ export const DeveloperDrawer: React.FC<Props> = ({ debugInfo, isOpen, onClose })
 
       {/* Drawer Body */}
       <div className="flex-1 overflow-y-auto p-4 space-y-5 text-xs text-slate-700">
+        {/* View Switcher */}
+        {setActiveTab && activeTab && (
+          <div className="p-3 bg-violet-50/80 rounded-xl border border-violet-200">
+            <span className="text-[10px] font-bold uppercase tracking-wider text-violet-800 block mb-2">
+              Pipeline View Navigation
+            </span>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                onClick={() => setActiveTab('analysis')}
+                className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all text-center ${
+                  activeTab === 'analysis'
+                    ? 'bg-violet-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Analysis
+              </button>
+              <button
+                onClick={() => setActiveTab('catalog')}
+                className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all text-center ${
+                  activeTab === 'catalog'
+                    ? 'bg-violet-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Database
+              </button>
+              <button
+                onClick={() => setActiveTab('modelcard')}
+                className={`px-2 py-1.5 rounded-lg text-[11px] font-semibold transition-all text-center ${
+                  activeTab === 'modelcard'
+                    ? 'bg-violet-600 text-white shadow-xs'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'
+                }`}
+              >
+                Model Card
+              </button>
+            </div>
+          </div>
+        )}
+
         {message && (
           <div className="p-3 rounded-lg bg-brand-50 border border-brand-200 text-brand-800 text-[11px] flex items-center gap-2">
             <CheckCircle className="w-4 h-4 text-brand-600 flex-shrink-0" />

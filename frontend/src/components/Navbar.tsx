@@ -9,6 +9,14 @@ interface Props {
 }
 
 export const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, devMode, setDevMode }) => {
+  const handleToggleDevMode = () => {
+    const next = !devMode;
+    setDevMode(next);
+    if (!next) {
+      setActiveTab('analysis');
+    }
+  };
+
   return (
     <header className="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-slate-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -30,49 +38,51 @@ export const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, devMode, setD
           </div>
         </div>
 
-        {/* Navigation tabs */}
-        <nav className="flex items-center gap-1 sm:gap-2">
-          <button
-            onClick={() => setActiveTab('analysis')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
-              activeTab === 'analysis'
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            Analysis & Recommendations
-          </button>
-          <button
-            onClick={() => setActiveTab('catalog')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              activeTab === 'catalog'
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <Database className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Packaging Database</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('modelcard')}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors flex items-center gap-1.5 ${
-              activeTab === 'modelcard'
-                ? 'bg-slate-100 text-slate-900'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-            }`}
-          >
-            <FileText className="w-4 h-4 text-slate-400" />
-            <span className="hidden sm:inline">Model Card & Audit</span>
-          </button>
-        </nav>
+        {/* Navigation tabs - only visible in Dev Mode */}
+        {devMode && (
+          <nav className="flex items-center gap-1 sm:gap-2 animate-in fade-in duration-200">
+            <button
+              onClick={() => setActiveTab('analysis')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
+                activeTab === 'analysis'
+                  ? 'bg-violet-100 text-violet-900 font-semibold shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              Analysis & Recommendations
+            </button>
+            <button
+              onClick={() => setActiveTab('catalog')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                activeTab === 'catalog'
+                  ? 'bg-violet-100 text-violet-900 font-semibold shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <Database className="w-4 h-4 text-violet-600" />
+              <span className="hidden sm:inline">Packaging Database</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('modelcard')}
+              className={`px-3 py-1.5 rounded-lg text-xs sm:text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                activeTab === 'modelcard'
+                  ? 'bg-violet-100 text-violet-900 font-semibold shadow-xs'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
+            >
+              <FileText className="w-4 h-4 text-violet-600" />
+              <span className="hidden sm:inline">Model Card & Audit</span>
+            </button>
+          </nav>
+        )}
 
         {/* Developer Mode Toggle */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setDevMode(!devMode)}
+            onClick={handleToggleDevMode}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-mono font-medium border transition-all ${
               devMode
-                ? 'bg-brand-50 border-brand-300 text-brand-700 shadow-sm'
+                ? 'bg-violet-50 border-violet-300 text-violet-800 shadow-sm'
                 : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
             }`}
             title="Toggle Developer & Scientific Pipeline Audit Inspector"
@@ -81,7 +91,7 @@ export const Navbar: React.FC<Props> = ({ activeTab, setActiveTab, devMode, setD
             <span>Dev Mode</span>
             <span
               className={`w-2 h-2 rounded-full ${
-                devMode ? 'bg-brand-500 animate-pulse' : 'bg-slate-300'
+                devMode ? 'bg-violet-600 animate-pulse' : 'bg-slate-300'
               }`}
             />
           </button>
