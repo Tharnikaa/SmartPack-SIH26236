@@ -244,22 +244,6 @@ export function App() {
                         />
                       ))}
                     </div>
-
-                    {/* Bottom Prompt to Open Comparison */}
-                    <div className="mt-8 p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
-                      <div>
-                        <h4 className="text-xs font-bold text-slate-900">Need a comprehensive technical parameter audit?</h4>
-                        <p className="text-[11px] text-slate-500">Compare OTR, WVTR, tensile strength, sealability, and shelf-life benchmarks side-by-side.</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setShowComparisonModal(true)}
-                        className="inline-flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-100 text-slate-800 font-semibold text-xs rounded-xl border border-slate-200 shadow-2xs transition-colors shrink-0 cursor-pointer"
-                      >
-                        <ArrowLeftRight className="w-3.5 h-3.5 text-violet-600" />
-                        <span>View Complete Comparison</span>
-                      </button>
-                    </div>
                   </div>
                 </>
               )}
